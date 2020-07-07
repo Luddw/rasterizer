@@ -1,0 +1,109 @@
+\hypertarget{class_mesh_resource}{}\doxysection{Mesh\+Resource Class Reference}
+\label{class_mesh_resource}\index{MeshResource@{MeshResource}}
+
+
+{\ttfamily \#include $<$meshresource.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_mesh_resource_a1cd49d4c3500eff58a00cd19a0dec7c7}{Mesh\+Resource}} (std\+::vector$<$ G\+Lfloat $>$ \mbox{\hyperlink{class_mesh_resource_a358da9f6c591414aee3612ad0f3ff740}{verts}}, std\+::vector$<$ G\+Luint $>$ \mbox{\hyperlink{class_mesh_resource_ac5132b47dbf6b8fa29f5ee77cedac832}{indices}})
+\item 
+void \mbox{\hyperlink{class_mesh_resource_a3dab290625f3fc963268892511fa4bfb}{Bind\+Vao}} ()
+\item 
+void \mbox{\hyperlink{class_mesh_resource_aa5a608e89780d20f5dae5be67259bb6f}{Bind\+Vbo}} ()
+\item 
+void \mbox{\hyperlink{class_mesh_resource_ab8eb43b02f893dd2189b6d91c075177c}{Bind\+Ibo}} ()
+\item 
+void \mbox{\hyperlink{class_mesh_resource_a7e5921c312625aa2d7ad21498d2c1e2b}{Setup\+Vertex\+Buffer}} ()
+\item 
+void \mbox{\hyperlink{class_mesh_resource_abd570a3c15b941d49585dfae6a41a8a5}{Setup\+Index\+Buffer}} ()
+\item 
+void \mbox{\hyperlink{class_mesh_resource_abd1be14f6973047c72c53750e598dd7d}{Setup\+Vertex\+Array}} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::vector$<$ G\+Lfloat $>$ \mbox{\hyperlink{class_mesh_resource_a358da9f6c591414aee3612ad0f3ff740}{verts}}
+\item 
+std\+::vector$<$ G\+Luint $>$ \mbox{\hyperlink{class_mesh_resource_ac5132b47dbf6b8fa29f5ee77cedac832}{indices}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+A class that represents a Mesh in Open\+GL 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_mesh_resource_a1cd49d4c3500eff58a00cd19a0dec7c7}\label{class_mesh_resource_a1cd49d4c3500eff58a00cd19a0dec7c7}} 
+\index{MeshResource@{MeshResource}!MeshResource@{MeshResource}}
+\index{MeshResource@{MeshResource}!MeshResource@{MeshResource}}
+\doxysubsubsection{\texorpdfstring{MeshResource()}{MeshResource()}}
+{\footnotesize\ttfamily Mesh\+Resource\+::\+Mesh\+Resource (\begin{DoxyParamCaption}\item[{std\+::vector$<$ G\+Lfloat $>$}]{verts,  }\item[{std\+::vector$<$ G\+Luint $>$}]{indices }\end{DoxyParamCaption})}
+
+Costum constructor for creating a mesh 
+\begin{DoxyParams}{Parameters}
+{\em verts} & a vector containing G\+Lfloats for the setup of vertexbuffer and vertexattribs \\
+\hline
+{\em indices} & a vector containing G\+Luints for the setup of indexbuffer \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{class_mesh_resource_ab8eb43b02f893dd2189b6d91c075177c}\label{class_mesh_resource_ab8eb43b02f893dd2189b6d91c075177c}} 
+\index{MeshResource@{MeshResource}!BindIbo@{BindIbo}}
+\index{BindIbo@{BindIbo}!MeshResource@{MeshResource}}
+\doxysubsubsection{\texorpdfstring{BindIbo()}{BindIbo()}}
+{\footnotesize\ttfamily void Mesh\+Resource\+::\+Bind\+Ibo (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+method to bind the Index buffer object \mbox{\Hypertarget{class_mesh_resource_a3dab290625f3fc963268892511fa4bfb}\label{class_mesh_resource_a3dab290625f3fc963268892511fa4bfb}} 
+\index{MeshResource@{MeshResource}!BindVao@{BindVao}}
+\index{BindVao@{BindVao}!MeshResource@{MeshResource}}
+\doxysubsubsection{\texorpdfstring{BindVao()}{BindVao()}}
+{\footnotesize\ttfamily void Mesh\+Resource\+::\+Bind\+Vao (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+method to bind the Vertex array object \mbox{\Hypertarget{class_mesh_resource_aa5a608e89780d20f5dae5be67259bb6f}\label{class_mesh_resource_aa5a608e89780d20f5dae5be67259bb6f}} 
+\index{MeshResource@{MeshResource}!BindVbo@{BindVbo}}
+\index{BindVbo@{BindVbo}!MeshResource@{MeshResource}}
+\doxysubsubsection{\texorpdfstring{BindVbo()}{BindVbo()}}
+{\footnotesize\ttfamily void Mesh\+Resource\+::\+Bind\+Vbo (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+method to bind the Vertex buffer object \mbox{\Hypertarget{class_mesh_resource_abd570a3c15b941d49585dfae6a41a8a5}\label{class_mesh_resource_abd570a3c15b941d49585dfae6a41a8a5}} 
+\index{MeshResource@{MeshResource}!SetupIndexBuffer@{SetupIndexBuffer}}
+\index{SetupIndexBuffer@{SetupIndexBuffer}!MeshResource@{MeshResource}}
+\doxysubsubsection{\texorpdfstring{SetupIndexBuffer()}{SetupIndexBuffer()}}
+{\footnotesize\ttfamily void Mesh\+Resource\+::\+Setup\+Index\+Buffer (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Generates buffers and binds them, Buffers the data to the gpu. \mbox{\Hypertarget{class_mesh_resource_abd1be14f6973047c72c53750e598dd7d}\label{class_mesh_resource_abd1be14f6973047c72c53750e598dd7d}} 
+\index{MeshResource@{MeshResource}!SetupVertexArray@{SetupVertexArray}}
+\index{SetupVertexArray@{SetupVertexArray}!MeshResource@{MeshResource}}
+\doxysubsubsection{\texorpdfstring{SetupVertexArray()}{SetupVertexArray()}}
+{\footnotesize\ttfamily void Mesh\+Resource\+::\+Setup\+Vertex\+Array (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Generates A vertex array, and binds it. \mbox{\Hypertarget{class_mesh_resource_a7e5921c312625aa2d7ad21498d2c1e2b}\label{class_mesh_resource_a7e5921c312625aa2d7ad21498d2c1e2b}} 
+\index{MeshResource@{MeshResource}!SetupVertexBuffer@{SetupVertexBuffer}}
+\index{SetupVertexBuffer@{SetupVertexBuffer}!MeshResource@{MeshResource}}
+\doxysubsubsection{\texorpdfstring{SetupVertexBuffer()}{SetupVertexBuffer()}}
+{\footnotesize\ttfamily void Mesh\+Resource\+::\+Setup\+Vertex\+Buffer (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Generates buffers and binds them, Buffers the data to the gpu. Enables Vertex attributes, position and colour for each vertex. 
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{class_mesh_resource_ac5132b47dbf6b8fa29f5ee77cedac832}\label{class_mesh_resource_ac5132b47dbf6b8fa29f5ee77cedac832}} 
+\index{MeshResource@{MeshResource}!indices@{indices}}
+\index{indices@{indices}!MeshResource@{MeshResource}}
+\doxysubsubsection{\texorpdfstring{indices}{indices}}
+{\footnotesize\ttfamily std\+::vector$<$G\+Luint$>$ Mesh\+Resource\+::indices}
+
+stores each indices value for use in the mesh methods \mbox{\Hypertarget{class_mesh_resource_a358da9f6c591414aee3612ad0f3ff740}\label{class_mesh_resource_a358da9f6c591414aee3612ad0f3ff740}} 
+\index{MeshResource@{MeshResource}!verts@{verts}}
+\index{verts@{verts}!MeshResource@{MeshResource}}
+\doxysubsubsection{\texorpdfstring{verts}{verts}}
+{\footnotesize\ttfamily std\+::vector$<$G\+Lfloat$>$ Mesh\+Resource\+::verts}
+
+stores each vertices value for use in the mesh methods 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+projects/\+Mesh\+Resource/code/meshresource.\+h\item 
+projects/\+Mesh\+Resource/code/meshresource.\+cc\end{DoxyCompactItemize}

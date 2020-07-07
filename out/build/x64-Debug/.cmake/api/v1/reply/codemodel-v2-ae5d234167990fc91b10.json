@@ -1,0 +1,357 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						5,
+						8
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "exts",
+					"childIndexes" : 
+					[
+						2,
+						3
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "exts",
+					"targetIndexes" : 
+					[
+						5,
+						7
+					]
+				},
+				{
+					"build" : "exts/glew",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "exts/glew",
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"build" : "exts/glfw",
+					"childIndexes" : 
+					[
+						4
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 2,
+					"source" : "exts/glfw"
+				},
+				{
+					"build" : "exts/glfw/src",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 3,
+					"projectIndex" : 2,
+					"source" : "exts/glfw/src",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "engine",
+					"childIndexes" : 
+					[
+						6,
+						7
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "engine"
+				},
+				{
+					"build" : "engine/core",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 0,
+					"source" : "engine/core",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "engine/render",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 0,
+					"source" : "engine/render",
+					"targetIndexes" : 
+					[
+						8
+					]
+				},
+				{
+					"build" : "projects",
+					"childIndexes" : 
+					[
+						9,
+						10,
+						11
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "projects"
+				},
+				{
+					"build" : "projects/ImGuiExample",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 8,
+					"projectIndex" : 3,
+					"source" : "projects/ImGuiExample",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "projects/example",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 8,
+					"projectIndex" : 4,
+					"source" : "projects/example",
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"build" : "projects/lab5",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.2"
+					},
+					"parentIndex" : 8,
+					"projectIndex" : 5,
+					"source" : "projects/lab5",
+					"targetIndexes" : 
+					[
+						6
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3,
+						4,
+						5
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						5,
+						6,
+						7,
+						8
+					],
+					"name" : "gscept_lab_env",
+					"targetIndexes" : 
+					[
+						1,
+						5,
+						7,
+						8
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2
+					],
+					"name" : "glew",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						3,
+						4
+					],
+					"name" : "GLFW",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						9
+					],
+					"name" : "ImGuiExample",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						10
+					],
+					"name" : "example",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						11
+					],
+					"name" : "lab5",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						6
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 9,
+					"id" : "ImGuiExample::@f81d0b09ba26fb223e0d",
+					"jsonFile" : "target-ImGuiExample-Debug-447e4b2922535df802cb.json",
+					"name" : "ImGuiExample",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "core::@daec77c92998606c5111",
+					"jsonFile" : "target-core-Debug-bb5bd1f7c6110e1ced8d.json",
+					"name" : "core",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "example::@df0f73a010a68d234ba3",
+					"jsonFile" : "target-example-Debug-81ea6ff25b2ca387332b.json",
+					"name" : "example",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "glew::@710e69b0c5555f599eaa",
+					"jsonFile" : "target-glew-Debug-5036813aa07a38cbf95d.json",
+					"name" : "glew",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "glfw::@766e2fc5a7847ac43afc",
+					"jsonFile" : "target-glfw-Debug-5f1a22c047c84331150f.json",
+					"name" : "glfw",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "imgui::@91fdfbc389eb79cc7eac",
+					"jsonFile" : "target-imgui-Debug-6051c015f04c03d3150c.json",
+					"name" : "imgui",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 11,
+					"id" : "lab5::@aaa52265afb60ccf8626",
+					"jsonFile" : "target-lab5-Debug-71982a5deb80a092b0b1.json",
+					"name" : "lab5",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "nanovg::@91fdfbc389eb79cc7eac",
+					"jsonFile" : "target-nanovg-Debug-0471868d0028b7928fff.json",
+					"name" : "nanovg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "render::@d03e0f9399c2d8dcbd5e",
+					"jsonFile" : "target-render-Debug-36ccabb045ba80bd9e8b.json",
+					"name" : "render",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/ludlin-8-local/Documents/RealtidsGrafik/lab5/lab-env-master/out/build/x64-Debug",
+		"source" : "C:/Users/ludlin-8-local/Documents/RealtidsGrafik/lab5/lab-env-master"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 0
+	}
+}
