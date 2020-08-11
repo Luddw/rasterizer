@@ -3,7 +3,11 @@
 
 
 
-Renderer::Renderer()
+Renderer::Renderer() : fb_widht(0), fb_height(0), frame_buffer(nullptr), depth_buffer(nullptr)
+{
+}
+
+Renderer::Renderer(const int widht, const int height)
 {
 }
 
@@ -28,6 +32,19 @@ const unsigned int Renderer::AddBuffer(std::vector<Vertex> vbuff, std::vector<un
 	return t_handle;
 }
 
-void Renderer::SetupFrameBuffer()
+void Renderer::SetupFrameBuffer(int widht, int height)
 {
+	frame_buffer = new unsigned[widht * height];
+	depth_buffer = new float[widht * height];
+
+}
+
+unsigned int* Renderer::GetFramebuffer()
+{
+	return frame_buffer;
+}
+
+const int Renderer::GetFramebufferSize()
+{
+	return fb_widht*fb_height;
 }
