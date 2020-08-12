@@ -3,12 +3,15 @@
 
 
 
-Renderer::Renderer() : fb_widht(0), fb_height(0), frame_buffer(nullptr), depth_buffer(nullptr)
+Renderer::Renderer() : fb_width(0), fb_height(0), frame_buffer(nullptr), depth_buffer(nullptr)
 {
 }
 
-Renderer::Renderer(const int widht, const int height)
+Renderer::Renderer(const int width, const int height)
 {
+	fb_width = width;
+	fb_height = height;
+	SetupFrameBuffer(width, height);
 }
 
 Renderer::~Renderer()
@@ -32,19 +35,34 @@ const unsigned int Renderer::AddBuffer(std::vector<Vertex> vbuff, std::vector<un
 	return t_handle;
 }
 
-void Renderer::SetupFrameBuffer(int widht, int height)
+void Renderer::SetupFrameBuffer(int width, int height)
 {
-	frame_buffer = new unsigned[widht * height];
-	depth_buffer = new float[widht * height];
-
+	frame_buffer = new Pixel[width * height];
+	depth_buffer = new float[width * height];
 }
 
-unsigned int* Renderer::GetFramebuffer()
+Pixel * Renderer::GetFramebuffer()
 {
 	return frame_buffer;
 }
 
 const int Renderer::GetFramebufferSize()
 {
-	return fb_widht*fb_height;
+	return fb_width*fb_height;
+}
+
+void Renderer::PlacePixel(unsigned int x, unsigned int y, Pixel pix)
+{
+	if (x < fb_width && y < fb_height)
+		this->frame_buffer[x + (y * fb_width)] = pix;
+}
+
+int Renderer::GetHeight()
+{
+	return fb_height;
+}
+
+int Renderer::GetWidth()
+{
+	return fb_width;
 }

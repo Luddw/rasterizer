@@ -10,7 +10,7 @@
 #include "render/window.h"
 #include "graphicnode.h"
 #include "pointlight.h"
-
+#include "softwarerasterizer.h"
 
 namespace Example
 {
@@ -36,5 +36,9 @@ private:
 	GraphicNode mainnode;
 	PointLight light;
 	Display::Window* window;
+	GLuint tex_h;
+	Renderer r;
+
+
 };
 } // namespace Example

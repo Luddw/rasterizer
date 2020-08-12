@@ -8,7 +8,6 @@
 #include <GL/glew.h>
 #include <iostream>
 #include <fstream>
-
 using namespace Display;
 
 namespace Example
@@ -125,27 +124,27 @@ namespace Example
 			glClearColor(0, 0, 0, 1.0f);
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LESS);
-			Matrix4D m;
-			Matrix4D m123(1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-			Matrix4D rot;
-			Matrix4D rot2;
-			Vector4D startcam(0, 0.8f, 2, 1);
-			const auto mesh = std::make_shared<MeshResource>();
-			mesh->ObjLoad("./resources/suzSmooth.obj");
-			//mesh->ObjLoad("./cube.obj");
-			//mesh->ObjLoad("./resources/floor.obj");
+			Pixel p(0xFF,0,0,0xFF);
 
-			const auto tex = std::make_shared<Texture>("./resources/wood.jpg");
-			const auto shad = std::make_shared<ShaderResource>("./resources/shader.glsl");
-			const auto tran = std::make_shared<Transform>(m, m, m);
-			const auto cam = std::make_shared<Cam>(startcam, Vector4D(0, 0, 0, 1));
-			mainnode = GraphicNode(mesh, tex, shad, tran, cam);
-			light = PointLight(Vector4D(1, 1, 0.25), Vector4D(1, 1, 1, 1), 0.3, 0.3);
+
+			int w, h;
 			
-			//mesh->DrawCube(0.5f);
-			//mesh->DrawCube(0.5);
+			this->window->GetSize(w, h);
+			r = Renderer(w, h);
+			r.PlacePixel(50,50,p);
 			
-			mainnode.SetLight(light);
+			glGenTextures(1, &tex_h);
+			glBindTexture(GL_TEXTURE_2D, tex_h);
+
+			//std::cout<<"width: "<< widht<< "height: " << height << "bpp: "<<bpp<<std::endl;
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+
 
 			return true;
 		}
@@ -160,14 +159,25 @@ namespace Example
 	void
 	Lab5::Run()
 	{
-		float rotlight = 0.05f;
+		std::vector<Vertex> quadV = { Vertex(Vector4D(-0.5, 0.5), Vector4D()), Vertex(Vector4D(0.5, 0.5), Vector4D()),
+					  Vertex(Vector4D(-0.5, -0.5), Vector4D()), Vertex(Vector4D(0.5, -0.5), Vector4D()), };
+
+		std::vector<unsigned int> quadI = { 2,1,3,
+										   3,2,4 };
+
+		MeshResource m(quadV, quadI);
 		while (this->window->IsOpen())
 		{
-			light.Rotate(rotlight);
-			//rotlight += 0.05f;
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			mainnode.Draw();
-			//std::cout << light.GetPos().GetX() << "\n";
+			glActiveTexture(GL_TEXTURE0 + 1);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, r.GetWidth(), r.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, r.GetFramebuffer());
+			m.DrawMesh();
+
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+
 			this->window->Update();
 			this->window->SwapBuffers();
 		}
