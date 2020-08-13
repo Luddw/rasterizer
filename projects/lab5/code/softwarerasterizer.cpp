@@ -1,6 +1,5 @@
 #include "softwarerasterizer.h"
-
-
+#include <functional>
 
 
 Renderer::Renderer() : fb_width(0), fb_height(0), frame_buffer(nullptr), depth_buffer(nullptr)
@@ -57,6 +56,16 @@ void Renderer::PlacePixel(unsigned int x, unsigned int y, Pixel pix)
 		this->frame_buffer[x + (y * fb_width)] = pix;
 }
 
+void Renderer::SetVertextShader(std::function<Vertex(Vertex)> VertexLambda)
+{
+	this->VertexShader = VertexLambda;
+}
+
+void Renderer::SetFragmentShader(std::function<void(Vertex)> FragLambda)
+{
+	this->FragShader = FragLambda;
+}
+
 int Renderer::GetHeight()
 {
 	return fb_height;
@@ -65,4 +74,14 @@ int Renderer::GetHeight()
 int Renderer::GetWidth()
 {
 	return fb_width;
+}
+
+void Renderer::SetModelViewProjectionMatrix(Matrix4D mvp)
+{
+	model_view_proj = mvp;
+}
+
+void Renderer::SetTexture(Texture tex)
+{
+	this->tex = tex;
 }

@@ -5,7 +5,9 @@
 #include "matlib.h"
 #include <vector>
 #include "meshresource.h"
-
+#include <utility>
+#include <functional>
+#include "texture.h"
 
 //struct Vertex
 //{
@@ -52,12 +54,15 @@ public:
 	Pixel * GetFramebuffer();
 	const int GetFramebufferSize();
 	void PlacePixel(unsigned int x, unsigned int y, Pixel pix);
-	void SetVertextShader();
-	void SetFragmentShader();
-	void RasterizeTriangle(Vertex x, Vertex y, Vertex z);
+	void SetVertextShader(std::function<Vertex(Vertex)> VertexLambda);
+	void SetFragmentShader(std::function<void(Vertex)> FragLambda);
 	int GetHeight();
 	int GetWidth();
 	void Draw();
+	void RasterizeTriangle(Vertex v1, Vertex v2, Vertex v3);
+	void SetModelViewProjectionMatrix(Matrix4D mvp);
+	void SetTexture(Texture tex);
+
 private:
 	//GLuint vbo{}, ibo{};
 	//GLuint fbo;
@@ -66,6 +71,10 @@ private:
 	int fb_width;
 	Pixel * frame_buffer;
 	float* depth_buffer;
+	std::function<Vertex(Vertex)> VertexShader;
+	std::function<void(Vertex)> FragShader;
+	Matrix4D model_view_proj;
+	Texture tex;
 };
 
 
