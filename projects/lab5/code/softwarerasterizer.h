@@ -8,7 +8,7 @@
 #include <utility>
 #include <functional>
 #include "texture.h"
-
+#include <graphics.h>
 //struct Vertex
 //{
 //	Vector4D pos;
@@ -30,6 +30,7 @@ struct BufferObject
 	};
 };		
 
+
 struct Pixel
 {
 	unsigned char r = 0;
@@ -41,6 +42,23 @@ struct Pixel
 };
 
 
+
+struct Point
+{
+	int xpos;
+	int ypos;
+};
+
+struct Line
+{
+	int dx, dy;
+	Point start;
+	Point end;
+	Line(Point p1, Point p2) : start(p1), end(p2) {
+		dx = std::abs(p2.xpos - p1.xpos);
+		dy = std::abs(p2.ypos - p1.ypos); 
+	};
+};
 class Renderer
 {
 public:
@@ -62,7 +80,7 @@ public:
 	void RasterizeTriangle(Vertex v1, Vertex v2, Vertex v3);
 	void SetModelViewProjectionMatrix(Matrix4D mvp);
 	void SetTexture(Texture tex);
-
+	void BresenhamLine(int x1, int y1, int x2, int y2);
 private:
 	//GLuint vbo{}, ibo{};
 	//GLuint fbo;
