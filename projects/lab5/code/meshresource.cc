@@ -3,29 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <map>
-#define ASSERT(x) if (!(x)) __debugbreak();
-#define GLCall(x) GLClearError();\
-	x;\
-	ASSERT(GLLogCall(#x, __FILE__, __LINE__))
 
-static void GLClearError()
-{
-	while (glGetError() != GL_NO_ERROR);
-
-}
-
-
-
-static bool GLLogCall(const char* function, const char* file, int line)
-{
-	while (GLenum error = glGetError())
-	{
-		std::cout << "[OpenGL Error] (" << error << ")" << function <<
-			" " << file << ":" << line << std::endl;
-		return false;
-	}
-	return true;
-}
 
 
 MeshResource::MeshResource(std::vector<Vertex> vertzz, std::vector<GLuint> indices)
@@ -37,8 +15,8 @@ MeshResource::MeshResource(std::vector<Vertex> vertzz, std::vector<GLuint> indic
 
 MeshResource::~MeshResource()
 {
-	GLCall(glDeleteBuffers(1,&ibo));
-	GLCall(glDeleteBuffers(1, &vbo));
+	glDeleteBuffers(1,&ibo);
+	glDeleteBuffers(1, &vbo);
 	
 	std::cout << " MESH DESTRUCTOR CALLED " << std::endl;
 }
@@ -61,17 +39,17 @@ void MeshResource::SetupIndexBuffer()
 
 void MeshResource::SetupVertexBuffer()
 {
-	GLCall(glGenBuffers(1, &vbo));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, vbo));
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
 	/*const GLuint buffer_size =;*/
-	GLCall(glBufferData(GL_ARRAY_BUFFER, vertexss.size() * sizeof(Vertex), &vertexss[0].pos, GL_STATIC_DRAW));
-	GLCall(glEnableVertexAttribArray(0));
-	GLCall(glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE, sizeof(Vertex), NULL));
-	GLCall(glEnableVertexAttribArray(1));
-	GLCall(glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uvPos)));
-	GLCall(glEnableVertexAttribArray(2));
-	GLCall(glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal)));
+	glBufferData(GL_ARRAY_BUFFER, vertexss.size() * sizeof(Vertex), &vertexss[0].pos, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE, sizeof(Vertex), NULL);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uvPos));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 		  
 
 }
@@ -93,7 +71,7 @@ void MeshResource::BindIbo() const
 }
 void MeshResource::BindVbo() const
 {
-    GLCall(glBindBuffer(GL_ARRAY_BUFFER, vbo));
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
 }
 void MeshResource::UnBindVao()
 {
@@ -246,8 +224,7 @@ void MeshResource::ObjLoad(const char* filepath)
 			Vector4D vert;
 			for (size_t i = 1; i < 4; i++)
 			{
-				sscanf_s(tokens[i].c_str(), "%f", &vert[i - 1]);
-
+				scanf(tokens[i].c_str(), "%f", &vert[i - 1]);
 			}
 
 			t_verts.emplace_back(vert);
@@ -258,7 +235,7 @@ void MeshResource::ObjLoad(const char* filepath)
 			Vector4D uv(0,0);
 			for (size_t i = 1; i < 3; i++)
 			{
-				sscanf_s(tokens[i].c_str(), "%f", &uv[i - 1]);
+				scanf(tokens[i].c_str(), "%f", &uv[i - 1]);
 
 			}
 
@@ -271,7 +248,7 @@ void MeshResource::ObjLoad(const char* filepath)
 			Vector4D norm;
 			for (size_t i = 1; i < 4; i++)
 			{
-				sscanf_s(tokens[i].c_str(), "%f", &norm[i - 1]);
+				scanf(tokens[i].c_str(), "%f", &norm[i - 1]);
 
 			}
 
@@ -287,8 +264,8 @@ void MeshResource::ObjLoad(const char* filepath)
 			{
 				for (size_t i = 1; i < 4; i++)
 				{
-					//sscanf_s(tokens[i].c_str(), "%d/%d/%d", &verts,  &uvs, &norms);
-					sscanf_s(tokens[i].c_str(), "%d/%d/%d", &vert, &uvs, &norms);
+					//scanf(tokens[i].c_str(), "%d/%d/%d", &verts,  &uvs, &norms);
+					scanf(tokens[i].c_str(), "%d/%d/%d", &vert, &uvs, &norms);
 
 
 					vertexIndices.emplace_back(vert);
@@ -303,7 +280,7 @@ void MeshResource::ObjLoad(const char* filepath)
 				std::vector<GLuint> tempverts, tempuvs, tempnorms;
 				for (size_t i = 1; i < 5; i++)
 				{
-					sscanf_s(tokens[i].c_str(), "%d/%d/%d" , &vert, &uvs, &norms);
+					scanf(tokens[i].c_str(), "%d/%d/%d" , &vert, &uvs, &norms);
 
 
 					tempverts.emplace_back(vert);

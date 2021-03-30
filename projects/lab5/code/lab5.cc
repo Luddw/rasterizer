@@ -121,7 +121,7 @@ namespace Example
 
 		if (this->window->Open())
 		{
-			glClearColor(0, 0, 0, 1.0f);
+			glClearColor(1.0f, 0.5f, 1.0f, 1.0f);
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LESS);
 			Pixel p(0xFF,0,0,0xFF);
@@ -173,7 +173,8 @@ namespace Example
 
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, r.GetWidth(), r.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, r.GetFramebuffer());
-			m.DrawMesh();
+			m.DrawCube(1);
+				
 
 
 			glBindTexture(GL_TEXTURE_2D, 0);

@@ -8,7 +8,6 @@
 #include <utility>
 #include <functional>
 #include "texture.h"
-#include <graphics.h>
 //struct Vertex
 //{
 //	Vector4D pos;
@@ -77,6 +76,7 @@ public:
 	int GetHeight();
 	int GetWidth();
 	void Draw();
+	void SaveFrameBuffPNG();
 	void RasterizeTriangle(Vertex v1, Vertex v2, Vertex v3);
 	void SetModelViewProjectionMatrix(Matrix4D mvp);
 	void SetTexture(Texture tex);

@@ -1,14 +1,6 @@
 #include "graphicnode.h"
 #include "pointlight.h"
-#define ASSERT(x) if (!(x)) __debugbreak();
-#define GLCall(x) GLClearError();\
-	x;\
-	ASSERT(GLLogCall(#x, __FILE__, __LINE__))
 
-static void GLClearError()
-{
-	while (glGetError() != GL_NO_ERROR);
-}
 
 static bool GLLogCall(const char* function, const char* file, int line)
 {
@@ -65,7 +57,7 @@ void GraphicNode::Draw()
 	p_Shader->SetUniform4f("camerapos", p_Cam->GetPos());
 
 
-	GLCall(glDrawElements(GL_TRIANGLES, p_Mesh->indices.size(), GL_UNSIGNED_INT, NULL));
+	glDrawElements(GL_TRIANGLES, p_Mesh->indices.size(), GL_UNSIGNED_INT, NULL);
 	/*glDrawArrays(GL_TRIANGLES, 0, p_Mesh->vertexss.size());*/
 	p_Mesh->UnBindIbo();
 	p_Mesh->UnBindVbo();
