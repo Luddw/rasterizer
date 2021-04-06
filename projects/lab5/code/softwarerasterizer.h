@@ -58,6 +58,7 @@ struct Line
 		dy = std::abs(p2.ypos - p1.ypos); 
 	};
 };
+
 class Renderer
 {
 public:
@@ -71,15 +72,15 @@ public:
 	Pixel * GetFramebuffer();
 	const int GetFramebufferSize();
 	void PlacePixel(unsigned int x, unsigned int y, Pixel pix);
-	void SetVertextShader(std::function<Vertex(Vertex)> VertexLambda);
-	void SetFragmentShader(std::function<void(Vertex)> FragLambda);
+	void SetVertextShader(std::function<Vertex(Vertex)> vertex_lambda);
+	void SetFragmentShader(std::function<void(Vertex)> frag_lambda);
 	int GetHeight();
 	int GetWidth();
 	void Draw();
-	void SaveFrameBuffPNG();
 	void RasterizeTriangle(Vertex v1, Vertex v2, Vertex v3);
-	void SetModelViewProjectionMatrix(Matrix4D mvp);
-	void SetTexture(Texture tex);
+	void SetModelViewProjectionMatrix(const Matrix4D &mvp);
+	void SetTexture(const Texture &tex);
+	void SaveFB();
 	void BresenhamLine(int x1, int y1, int x2, int y2);
 private:
 	//GLuint vbo{}, ibo{};
@@ -89,8 +90,8 @@ private:
 	int fb_width;
 	Pixel * frame_buffer;
 	float* depth_buffer;
-	std::function<Vertex(Vertex)> VertexShader;
-	std::function<void(Vertex)> FragShader;
+	std::function<Vertex(Vertex)> vertex_shader;
+	std::function<void(Vertex)> frag_shader;
 	Matrix4D model_view_proj;
 	Texture tex;
 };

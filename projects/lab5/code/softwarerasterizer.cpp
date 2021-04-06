@@ -1,5 +1,7 @@
 #include "softwarerasterizer.h"
 #include <functional>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 
 Renderer::Renderer() : fb_width(0), fb_height(0), frame_buffer(nullptr), depth_buffer(nullptr)
@@ -15,6 +17,7 @@ Renderer::Renderer(const int width, const int height)
 
 Renderer::~Renderer()
 {
+
 }
 
 void Renderer::AddVertexBuffer(Vertex * buffer) 
@@ -56,14 +59,14 @@ void Renderer::PlacePixel(unsigned int x, unsigned int y, Pixel pix)
 		this->frame_buffer[x + (y * fb_width)] = pix;
 }
 
-void Renderer::SetVertextShader(std::function<Vertex(Vertex)> VertexLambda)
+void Renderer::SetVertextShader(std::function<Vertex(Vertex)> vertex_lambda)
 {
-	this->VertexShader = VertexLambda;
+	this->vertex_shader = vertex_lambda;
 }
 
-void Renderer::SetFragmentShader(std::function<void(Vertex)> FragLambda)
+void Renderer::SetFragmentShader(std::function<void(Vertex)> frag_lambda)
 {
-	this->FragShader = FragLambda;
+	this->frag_shader = frag_lambda;
 }
 
 int Renderer::GetHeight()
@@ -76,12 +79,19 @@ int Renderer::GetWidth()
 	return fb_width;
 }
 
-void Renderer::SetModelViewProjectionMatrix(Matrix4D mvp)
+void Renderer::SetModelViewProjectionMatrix(const Matrix4D &mvp)
 {
 	model_view_proj = mvp;
 }
 
-void Renderer::SetTexture(Texture tex)
+void Renderer::SaveFB()
+{
+	stbi_write_png("gamer.png", fb_width, fb_height, 4, frame_buffer, fb_width*4);
+	printf("writing image: %s \n", "gamer.png");
+}
+void Renderer::SetTexture(const Texture &tex)
 {
 	this->tex = tex;
+
+
 }

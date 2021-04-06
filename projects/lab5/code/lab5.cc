@@ -2,7 +2,6 @@
 // Lab5.cc
 // (C) 2015-2018 Individual contributors, see AUTHORS file
 //------------------------------------------------------------------------------
-#include "config.h"
 #include "lab5.h"
 #include <sstream>
 #include <GL/glew.h>
@@ -126,12 +125,22 @@ namespace Example
 			glDepthFunc(GL_LESS);
 			Pixel p(0xFF,0,0,0xFF);
 
-
 			int w, h;
 			
 			this->window->GetSize(w, h);
 			r = Renderer(w, h);
-			r.PlacePixel(50,50,p);
+			for (size_t i = 1; i < 20; i++)
+			{
+				for (size_t j = 1; j < 20; i++)
+				{
+					r.PlacePixel(i,j,p);
+					
+				}
+				p.g += 1;
+			}
+			r.SaveFB();
+			
+
 			
 			glGenTextures(1, &tex_h);
 			glBindTexture(GL_TEXTURE_2D, tex_h);

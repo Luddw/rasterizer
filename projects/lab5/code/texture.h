@@ -11,8 +11,8 @@ private:
 	int widht, height, bpp;
 public:
 	Texture(const std::string &path);
+	Texture(unsigned char * buf);
 	Texture();
-
 	~Texture();
 
 	void Bind(unsigned int textslot) const;
