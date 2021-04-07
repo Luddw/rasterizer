@@ -11,7 +11,8 @@
 #include <GLFW/glfw3.h>
 #include <nanovg.h>
 #include <string>
-
+typedef int int32;
+typedef double float64;
 namespace Display
 {
 class Window

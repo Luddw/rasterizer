@@ -79,6 +79,7 @@ public:
 	void Draw();
 	void RasterizeTriangle(Vertex v1, Vertex v2, Vertex v3);
 	void SetModelViewProjectionMatrix(const Matrix4D &mvp);
+	void DrawLine(int x0, int y0, int x1, int y1);
 	void SetTexture(const Texture &tex);
 	void SaveFB();
 	void BresenhamLine(int x1, int y1, int x2, int y2);

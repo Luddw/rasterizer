@@ -1,5 +1,6 @@
 #include "softwarerasterizer.h"
 #include <functional>
+#include <cmath>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
@@ -86,12 +87,66 @@ void Renderer::SetModelViewProjectionMatrix(const Matrix4D &mvp)
 
 void Renderer::SaveFB()
 {
-	stbi_write_png("gamer.png", fb_width, fb_height, 4, frame_buffer, fb_width*4);
-	printf("writing image: %s \n", "gamer.png");
+	stbi_write_jpg("gamer.jpg", fb_width, fb_height, 4, frame_buffer, fb_width*4);
+	printf("writing image: %s \n", "gamer.jpg");
 }
+
 void Renderer::SetTexture(const Texture &tex)
 {
 	this->tex = tex;
+}
 
+void Renderer::DrawLine(int x0, int y0, int x1, int y1)
+{
+	Pixel p(0xFF,0,0,0xFF);
+	bool isSteep = false;
+	if (std::abs(x0 - x1) < std::abs(y0 - y1))
+	{
+		std::swap(x0, y0);
+		std::swap(x1, y1);
+		isSteep = true;
+	}
 
+	if (x0 > x1) // switch to left-to-right
+	{
+		std::swap(x0, x1);
+		std::swap(y0, y1);
+	}
+	int dx = x1 - x0;
+	int dy = y1 - y0;
+	int dError = std::abs(dy) * 2;
+	int error = 0;
+	int y = y0;
+	
+	for (size_t x = x0; x <= x1; x++)
+	{
+		if (isSteep)
+			PlacePixel(y, x, p);
+		else
+			PlacePixel(x, y, p);
+
+		error += dError;
+		if (error > dx)
+		{
+			y += (y1 > y0 ? 1 : -1);
+			error -= dx * 2;
+		}	
+		// float k = (x-x0) / (float)(x1-x0);
+		// int y = y0 * (1.0 - k) + y1 * k;
+		// if (isSteep)
+		// 	PlacePixel(y, x, p);
+		// else
+		// 	PlacePixel(x, y, p);
+	}
+	
+	
+	
+
+	// for (size_t x = x0; x < x1; x++)
+	// {
+	// 	float k = (x-x0) / (float)(x1-x0);
+	// 	int y = y0 * (1.0 - k) + (y1 * k);
+	// 	PlacePixel(x, y, p);	
+	// }
+	
 }

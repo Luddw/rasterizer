@@ -7,8 +7,9 @@
 #include <GL/glew.h>
 #include <iostream>
 #include <fstream>
+typedef int int32;
+typedef double float64;
 using namespace Display;
-
 namespace Example
 {
 	//------------------------------------------------------------------------------
@@ -111,7 +112,7 @@ namespace Example
 				}
 				dx = xpos;
 				dy = ypos;
-			}
+			} 
 			
 		);
 		
@@ -129,15 +130,13 @@ namespace Example
 			
 			this->window->GetSize(w, h);
 			r = Renderer(w, h);
-			for (size_t i = 1; i < 20; i++)
-			{
-				for (size_t j = 1; j < 20; i++)
-				{
-					r.PlacePixel(i,j,p);
-					
-				}
-				p.g += 1;
-			}
+
+			r.DrawLine(13, 20, 80, 40);
+			r.DrawLine(20, 13, 40, 80);	
+			r.DrawLine(80, 40, 13, 20);
+
+
+			
 			r.SaveFB();
 			
 
