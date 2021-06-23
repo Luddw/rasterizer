@@ -81,10 +81,13 @@ void MeshResource::UnBindVao()
 void MeshResource::DrawMesh()
 {
 	BindVbo();
-
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE, sizeof(Vertex), NULL);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uvPos));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 	BindIbo();
-	//glDrawElements(GL_TRIANGLES, this->vertexss.size(),	GL_UNSIGNED_INT, NULL);
-	
 }
 
 void MeshResource::UnBindIbo()

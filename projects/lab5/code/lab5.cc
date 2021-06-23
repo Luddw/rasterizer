@@ -10,6 +10,8 @@
 typedef int int32;
 typedef double float64;
 using namespace Display;
+
+
 namespace Example
 {
 	//------------------------------------------------------------------------------
@@ -134,10 +136,10 @@ namespace Example
 			r.DrawLine(13, 20, 80, 40);
 			r.DrawLine(20, 13, 40, 80);	
 			r.DrawLine(80, 40, 13, 20);
-
+			r.DrawLine(100, 50, 100, 100);
 
 			
-			r.SaveFB();
+			//r.SaveFB();
 			
 
 			
@@ -150,6 +152,8 @@ namespace Example
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,r.GetFramebuffer());
+
 
 			glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -167,24 +171,35 @@ namespace Example
 	void
 	Lab5::Run()
 	{
-		std::vector<Vertex> quadV = { Vertex(Vector4D(-0.5, 0.5), Vector4D()), Vertex(Vector4D(0.5, 0.5), Vector4D()),
-					  Vertex(Vector4D(-0.5, -0.5), Vector4D()), Vertex(Vector4D(0.5, -0.5), Vector4D()), };
+		std::vector<Vertex> quadV = { Vertex(Vector4D(1, 1, 0), Vector4D(1,1) ), // top r
+									  Vertex(Vector4D(1, -1,0), Vector4D(1,0)),  // botom r
+					  				  Vertex(Vector4D(-1, -1,0), Vector4D(0,0)),// bot l
+										 Vertex(Vector4D(-1, 1,0), Vector4D(0,1)), };//top l
 
-		std::vector<unsigned int> quadI = { 2,1,3,
-										   3,2,4 };
+		std::vector<GLuint> quadI = { 0,1,3,
+									  1,2,3};
 
+		ShaderResource quadShader("./resources/quad.glsl");
+		
 		MeshResource m(quadV, quadI);
+		m.SetupVertexBuffer();
+		m.SetupIndexBuffer();
+
 		while (this->window->IsOpen())
 		{
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glActiveTexture(GL_TEXTURE0 + 1);
+			glBindTexture(GL_TEXTURE_2D, tex_h);
+			//glActiveTexture(GL_TEXTURE0 + 0);
+			quadShader.Bind();
+		
+			m.DrawMesh();
 
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, r.GetWidth(), r.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, r.GetFramebuffer());
-			m.DrawCube(1);
-				
+//			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,r.GetFramebuffer());
+			//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, r.GetWidth(), r.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, r.GetFramebuffer());
+			
+			
 
-
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 			glBindTexture(GL_TEXTURE_2D, 0);
 
 			this->window->Update();

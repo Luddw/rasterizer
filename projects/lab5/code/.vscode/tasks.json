@@ -1,0 +1,59 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "C/C++: g++ build active file",
+            "command": "/usr/bin/g++",
+            "args": [
+                "-g",
+                "${file}",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "oneofeach",
+            "dependsOn":[
+                "removez",
+                "cmakez",
+                "makez"
+            ],
+            "dependsOrder": "sequence"
+        },
+        {
+            "type":"shell",
+            "label": "removez",
+            "command": "rm -rf ./build ./bin",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "type":"shell",
+            "label": "cmakez",
+            "command": "cmake -S ./ -B ./build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "type":"shell",
+            "label": "makez",
+            "command": "make",
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            }
+        }
+    ],
+    "version": "2.0.0"
+}

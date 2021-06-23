@@ -87,8 +87,8 @@ void Renderer::SetModelViewProjectionMatrix(const Matrix4D &mvp)
 
 void Renderer::SaveFB()
 {
-	stbi_write_jpg("gamer.jpg", fb_width, fb_height, 4, frame_buffer, fb_width*4);
-	printf("writing image: %s \n", "gamer.jpg");
+	stbi_write_png("gamer.png", fb_width, fb_height, 4, frame_buffer, fb_width*4);
+	printf("writing image: %s \n", "gamer.png");
 }
 
 void Renderer::SetTexture(const Texture &tex)

@@ -6,6 +6,7 @@
 #include <vector>
 
 
+
 struct Vertex
 {
 	Vertex() : pos(Vector4D()), uvPos(Vector4D()) { };

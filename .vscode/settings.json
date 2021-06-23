@@ -1,6 +1,10 @@
 {
     "files.associations": {
         "ostream": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "array": "cpp",
+        "ranges": "cpp",
+        "tuple": "cpp",
+        "utility": "cpp"
     }
 }
