@@ -150,3 +150,10 @@ void Renderer::DrawLine(int x0, int y0, int x1, int y1)
 	// }
 	
 }
+
+void Renderer::PlaceTriangle(Point p1, Point p2, Point p3)
+{
+	DrawLine(p1.xpos, p1.ypos, p2.xpos, p2.ypos);
+	DrawLine(p2.xpos, p2.ypos, p3.xpos, p3.ypos);
+	DrawLine(p3.xpos, p3.ypos, p1.xpos, p1.ypos);
+}

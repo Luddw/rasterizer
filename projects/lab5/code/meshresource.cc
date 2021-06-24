@@ -48,9 +48,37 @@ void MeshResource::SetupVertexBuffer()
 	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE, sizeof(Vertex), NULL);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uvPos));
+	/*
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-		  
+	*/	  
+
+}
+
+void MeshResource::SetupMeshResource()
+{
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	/*const GLuint buffer_size =;*/
+	glBufferData(GL_ARRAY_BUFFER, vertexss.size() * sizeof(Vertex), &vertexss[0].pos, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE, sizeof(Vertex), NULL);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uvPos));
+	/*
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    */
+	glGenBuffers(1, &ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    const GLuint buffer_size = indices.size() *sizeof(GLuint);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,buffer_size, &indices[0], GL_STATIC_DRAW);
+
+	glBindVertexArray(0);
 
 }
 void MeshResource::SetupVertexArray()
@@ -81,12 +109,6 @@ void MeshResource::UnBindVao()
 void MeshResource::DrawMesh()
 {
 	BindVbo();
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE, sizeof(Vertex), NULL);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uvPos));
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 	BindIbo();
 }
 
@@ -98,9 +120,9 @@ void MeshResource::UnBindVbo()
 {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
-
 void MeshResource::DrawCube(float size) 
 {
+/*
 	size /= 2;
 
 	vertexss = { 
@@ -170,9 +192,10 @@ void MeshResource::DrawCube(float size)
 	
 	SetupVertexBuffer();
 	SetupIndexBuffer();
-	
+	*/
 	/*m.UnBindIbo();
 	m.UnBindVbo();*/
+
 }
 
 
@@ -337,7 +360,7 @@ void MeshResource::ObjLoad(const char* filepath)
 		Vector4D uv = t_uvs[uvIndex - 1];
 		Vector4D norm = t_norms[normIndex - 1];
 		
-		vertexss.emplace_back(Vertex(vertex, uv, norm));
+		/*vertexss.emplace_back(Vertex(vertex, uv, norm));*/
 		indices.emplace_back(i);
 	}
 

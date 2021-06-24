@@ -132,12 +132,26 @@ namespace Example
 			
 			this->window->GetSize(w, h);
 			r = Renderer(w, h);
-
+			Point p1 = {10, 100};
+			Point p2 = {100, 100};
+			Point p3 = {60, 200};
 			r.DrawLine(13, 20, 80, 40);
 			r.DrawLine(20, 13, 40, 80);	
 			r.DrawLine(80, 40, 13, 20);
 			r.DrawLine(100, 50, 100, 100);
 
+			
+			for (size_t i = 0; i < 10; i++)
+			{
+
+				p1.xpos += 20 * i;
+				
+				p2.xpos += 40 * i;
+
+				p3.xpos += 20 * i;
+				
+				r.PlaceTriangle(p1,p2,p3);
+			}
 			
 			//r.SaveFB();
 			
@@ -147,11 +161,12 @@ namespace Example
 			glBindTexture(GL_TEXTURE_2D, tex_h);
 
 			//std::cout<<"width: "<< widht<< "height: " << height << "bpp: "<<bpp<<std::endl;
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+
 			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,r.GetFramebuffer());
 
 
@@ -171,10 +186,10 @@ namespace Example
 	void
 	Lab5::Run()
 	{
-		std::vector<Vertex> quadV = { Vertex(Vector4D(1, 1, 0), Vector4D(1,1) ), // top r
-									  Vertex(Vector4D(1, -1,0), Vector4D(1,0)),  // botom r
-					  				  Vertex(Vector4D(-1, -1,0), Vector4D(0,0)),// bot l
-										 Vertex(Vector4D(-1, 1,0), Vector4D(0,1)), };//top l
+		std::vector<Vertex> quadV = { Vertex(Vector4D(1.0f, 1.0f, 0.0f), Vector4D(1.0f,0.0f)), // top r
+									  Vertex(Vector4D(1.0f, -1.0f,  0.0f), Vector4D(1.0f,1.0f)),  // botom r
+					  				  Vertex(Vector4D(-1.0f, -1.0f, 0.0f), Vector4D(0.0f,1.0f) ),// bot l
+									  Vertex(Vector4D(-1.0f, 1.0f, 0.0f), Vector4D(0.0f,0.0f)) };//top l
 
 		std::vector<GLuint> quadI = { 0,1,3,
 									  1,2,3};
@@ -182,23 +197,20 @@ namespace Example
 		ShaderResource quadShader("./resources/quad.glsl");
 		
 		MeshResource m(quadV, quadI);
-		m.SetupVertexBuffer();
-		m.SetupIndexBuffer();
+		m.SetupMeshResource();
 
 		while (this->window->IsOpen())
 		{
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glBindTexture(GL_TEXTURE_2D, tex_h);
-			//glActiveTexture(GL_TEXTURE0 + 0);
 			quadShader.Bind();
-		
-			m.DrawMesh();
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, tex_h);
+			quadShader.SetUniformTex("tex", 0);
 
+			m.BindVao();
+			m.BindIbo();
 //			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,r.GetFramebuffer());
 			//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, r.GetWidth(), r.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, r.GetFramebuffer());
-			
-			
-
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 			glBindTexture(GL_TEXTURE_2D, 0);
 

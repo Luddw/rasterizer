@@ -117,6 +117,10 @@ void ShaderResource::SetUniformFloat(const std::string& name, float value)
 	glUniform1f(GetUniLocation(name), (GLfloat)value);
 	
 }
+void ShaderResource::SetUniformTex(const std::string& name, int value)
+{
+	glUniform1i(GetUniLocation(name), (GLint)value);
+}
 
 int ShaderResource::GetUniLocation(const std::string &name)
 {

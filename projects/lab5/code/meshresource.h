@@ -10,12 +10,12 @@
 struct Vertex
 {
 	Vertex() : pos(Vector4D()), uvPos(Vector4D()) { };
-	Vertex(const Vertex& other) : pos(other.pos), uvPos(other.uvPos), normal(other.normal) { };
+	Vertex(const Vertex& other) : pos(other.pos), uvPos(other.uvPos)/*, normal(other.normal) */{ };
 	Vertex(Vector4D position, Vector4D uv) : pos(position), uvPos(uv) { };
-	Vertex(const Vector4D& position, const Vector4D& uv, const Vector4D& norm): pos(position),uvPos(uv),normal(norm){};
+	//Vertex(const Vector4D& position, const Vector4D& uv/*, const Vector4D& norm*/): pos(position), uvPos(uv)/*,normal(norm)*/{};
 	Vector4D pos;
 	Vector4D uvPos;
-	Vector4D normal;
+/*	Vector4D normal;*/
 
 };
 
@@ -44,7 +44,7 @@ public:
 	/** method to bind the Index buffer object */
 	void BindIbo() const;
 
-
+	void SetupMeshResource();
 	void UnBindIbo();
 	void UnBindVbo();
 	void UnBindVao();

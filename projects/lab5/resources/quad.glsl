@@ -1,7 +1,7 @@
 #shader vertex
 #version 430
-layout(location = 0) in vec3 vertexPosition_modelspace;
-layout(location = 1) in vec2 vertexUV;
+layout(location = 0) in vec3 pos;
+layout(location = 1) in vec2 uv;
 out vec2 UV;
 out vec2 POS;
 //uniform mat4 MVP;
@@ -9,8 +9,8 @@ out vec2 POS;
 
 void main()
 {
-    gl_Position =  vec4(vertexPosition_modelspace,1);
-    UV = vertexUV;
+    gl_Position =  vec4(pos, 1);
+    UV = uv;
 }
 
 #shader fragment
@@ -23,5 +23,5 @@ void main()
 {
     color = texture(tex, UV).rgb;
     //color = vec3(0,0,1);
-    color = vec3(POS.x, POS.y,0);
+    //color = vec3(UV.x, UV.y,0);
 }

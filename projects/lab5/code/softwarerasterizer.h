@@ -78,6 +78,7 @@ public:
 	int GetWidth();
 	void Draw();
 	void RasterizeTriangle(Vertex v1, Vertex v2, Vertex v3);
+	void PlaceTriangle(Point p1, Point p2, Point p3);
 	void SetModelViewProjectionMatrix(const Matrix4D &mvp);
 	void DrawLine(int x0, int y0, int x1, int y1);
 	void SetTexture(const Texture &tex);
