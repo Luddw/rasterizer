@@ -138,8 +138,23 @@ namespace Example
 
 			
 			
-			Pixel pix = {254, 0, 0, 254};
-			r.RasterizeTriangle(p1,p2,p3, pix);
+			Pixel pix1 = {254, 0, 0, 254};
+			r.RasterizeTriangle(p1,p2,p3, pix1);
+
+			Point p4 = {400,600};
+			Point p5 = {350,100};
+			Point p6 = {600,350};
+
+			Pixel pix = {0,254,50,254};
+			r.RasterizeTriangle(p4,p5,p6, pix);
+
+			Point p41 = {650,50};
+			Point p51 = {800,25};
+			Point p61 = {700,250};
+
+			Pixel pix3 = {0,25,254,254};
+			r.RasterizeTriangle(p41,p51,p61, pix3);
+
 			
 
 

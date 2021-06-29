@@ -189,9 +189,9 @@ void Renderer::RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour)
 
 	}
 
-	// colour.r /= 2;
-	// colour.g /= 2;
-	// colour.b /= 2;
+	colour.r /= 2;
+	colour.g /= 2;
+	colour.b /= 2;
 
 	for (int y = p2.ypos; y <= p3.ypos; y++)
 	{
