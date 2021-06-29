@@ -46,6 +46,34 @@ struct Point
 {
 	int xpos;
 	int ypos;
+	
+	Point operator -(const Point &p) const
+	{
+		// xpos = xpos - p.xpos;
+		// ypos = ypos - p.ypos;
+		return Point{xpos - p.xpos, ypos - p.ypos};
+		
+	};
+	Point operator +(const Point &p) const
+	{
+
+		return Point{p.xpos + xpos, p.ypos + ypos};
+
+	};
+	Point operator *(const float &c)
+	{
+		xpos = xpos * c;
+		ypos = ypos * c;
+		return Point{xpos, ypos};
+
+	};
+
+	Point& operator =(const Point &p)
+	{
+		xpos = p.xpos;
+		ypos = p.ypos;
+		return *this;
+	};
 };
 
 struct Line
@@ -77,10 +105,10 @@ public:
 	int GetHeight();
 	int GetWidth();
 	void Draw();
-	void RasterizeTriangle(Vertex v1, Vertex v2, Vertex v3);
+	void RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour);
 	void PlaceTriangle(Point p1, Point p2, Point p3);
 	void SetModelViewProjectionMatrix(const Matrix4D &mvp);
-	void DrawLine(int x0, int y0, int x1, int y1);
+	void DrawLine(Point p1, Point p2 , Pixel colour);
 	void SetTexture(const Texture &tex);
 	void SaveFB();
 	void BresenhamLine(int x1, int y1, int x2, int y2);

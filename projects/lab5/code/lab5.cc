@@ -132,28 +132,18 @@ namespace Example
 			
 			this->window->GetSize(w, h);
 			r = Renderer(w, h);
-			Point p1 = {10, 100};
-			Point p2 = {100, 100};
-			Point p3 = {60, 200};
-			r.DrawLine(13, 20, 80, 40);
-			r.DrawLine(20, 13, 40, 80);	
-			r.DrawLine(80, 40, 13, 20);
-			r.DrawLine(100, 50, 100, 100);
+			Point p1 = {100, 50};
+			Point p2 = {300, 100};
+			Point p3 = {40, 400};
 
 			
-			for (size_t i = 0; i < 10; i++)
-			{
-
-				p1.xpos += 20 * i;
-				
-				p2.xpos += 40 * i;
-
-				p3.xpos += 20 * i;
-				
-				r.PlaceTriangle(p1,p2,p3);
-			}
 			
-			//r.SaveFB();
+			Pixel pix = {254, 0, 0, 254};
+			r.RasterizeTriangle(p1,p2,p3, pix);
+			
+
+
+			r.SaveFB();
 			
 
 			

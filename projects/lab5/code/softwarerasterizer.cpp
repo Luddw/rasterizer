@@ -96,43 +96,42 @@ void Renderer::SetTexture(const Texture &tex)
 	this->tex = tex;
 }
 
-void Renderer::DrawLine(int x0, int y0, int x1, int y1)
+void Renderer::DrawLine(Point p1, Point p2 , Pixel colour)
 {
-	Pixel p(0xFF,0,0,0xFF);
 	bool isSteep = false;
-	if (std::abs(x0 - x1) < std::abs(y0 - y1))
+	if (std::abs(p1.xpos - p2.xpos) < std::abs(p1.ypos - p2.ypos))
 	{
-		std::swap(x0, y0);
-		std::swap(x1, y1);
+		std::swap(p1.xpos, p1.ypos);
+		std::swap(p2.xpos, p2.ypos);
 		isSteep = true;
 	}
 
-	if (x0 > x1) // switch to left-to-right
+	if (p1.xpos > p2.xpos) // switch to left-to-right
 	{
-		std::swap(x0, x1);
-		std::swap(y0, y1);
+		std::swap(p1.xpos, p2.xpos);
+		std::swap(p1.ypos, p2.ypos);
 	}
-	int dx = x1 - x0;
-	int dy = y1 - y0;
+	int dx = p2.xpos - p1.xpos;
+	int dy = p2.ypos - p1.ypos;
 	int dError = std::abs(dy) * 2;
 	int error = 0;
-	int y = y0;
+	int y = p1.ypos;
 	
-	for (size_t x = x0; x <= x1; x++)
+	for (size_t x = p1.xpos; x <= p2.xpos; x++)
 	{
 		if (isSteep)
-			PlacePixel(y, x, p);
+			PlacePixel(y, x, colour);
 		else
-			PlacePixel(x, y, p);
+			PlacePixel(x, y, colour);
 
 		error += dError;
 		if (error > dx)
 		{
-			y += (y1 > y0 ? 1 : -1);
+			y += (p2.ypos > p1.ypos ? 1 : -1);
 			error -= dx * 2;
 		}	
-		// float k = (x-x0) / (float)(x1-x0);
-		// int y = y0 * (1.0 - k) + y1 * k;
+		// float k = (x-p1.xpos) / (float)(p2.xpos-p1.xpos);
+		// int y = p1.ypos * (1.0 - k) + p2.ypos * k;
 		// if (isSteep)
 		// 	PlacePixel(y, x, p);
 		// else
@@ -142,10 +141,10 @@ void Renderer::DrawLine(int x0, int y0, int x1, int y1)
 	
 	
 
-	// for (size_t x = x0; x < x1; x++)
+	// for (size_t x = p1.xpos; x < p2.xpos; x++)
 	// {
-	// 	float k = (x-x0) / (float)(x1-x0);
-	// 	int y = y0 * (1.0 - k) + (y1 * k);
+	// 	float k = (x-p1.xpos) / (float)(p2.xpos-p1.xpos);
+	// 	int y = p1.ypos * (1.0 - k) + (p2.ypos * k);
 	// 	PlacePixel(x, y, p);	
 	// }
 	
@@ -153,7 +152,69 @@ void Renderer::DrawLine(int x0, int y0, int x1, int y1)
 
 void Renderer::PlaceTriangle(Point p1, Point p2, Point p3)
 {
-	DrawLine(p1.xpos, p1.ypos, p2.xpos, p2.ypos);
+	/*DrawLine(p1.xpos, p1.ypos, p2.xpos, p2.ypos);
 	DrawLine(p2.xpos, p2.ypos, p3.xpos, p3.ypos);
-	DrawLine(p3.xpos, p3.ypos, p1.xpos, p1.ypos);
+	DrawLine(p3.xpos, p3.ypos, p1.xpos, p1.ypos);*/
+}
+
+void Renderer::RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour)
+{
+	// sort each vertex by Y-pos, if-ladder
+	if (p1.ypos > p2.ypos)
+		std::swap(p1, p2);
+	if (p1.ypos > p3.ypos)
+		std::swap(p1, p3);
+	if (p2.ypos > p3.ypos)
+		std::swap(p2, p3);
+
+	int height = p3.ypos - p1.ypos; //totalt "height" of the triangle to raster
+
+
+	for (int y = p1.ypos; y <= p2.ypos; y++)
+	{
+		int segmentHeight = p2.ypos - p1.ypos + 1; // first segment of triangle
+		float a = (float)(y - p1.ypos) / height;
+		float b = (float)(y - p1.ypos) / segmentHeight;
+		Point A = p1 + (p3 - p1) * a;
+		Point B = p1 + (p2 - p1) * b;
+
+		PlacePixel(A.xpos, y, Pixel{254, 0,0,254});
+		PlacePixel(B.xpos, y, Pixel{0, 254,0,254});
+		if (A.xpos > B.xpos)
+			std::swap(A, B);
+
+		for (int ii = A.xpos; ii <= B.xpos; ii++) {
+			PlacePixel(ii, y, colour);
+		}
+
+	}
+
+	// colour.r /= 2;
+	// colour.g /= 2;
+	// colour.b /= 2;
+
+	for (int y = p2.ypos; y <= p3.ypos; y++)
+	{
+		int segmentHeight = p3.ypos - p2.ypos + 1; // second segment
+		float a = (float)(y - p1.ypos) / height;
+		float b = (float)(y - p2.ypos) / segmentHeight;
+		Point A = p1 + (p3 - p1) * a;
+		Point B = p2 + (p3 - p2) * b;
+		if (A.xpos > B.xpos)
+			std::swap(A, B);
+
+
+		for (int ii = A.xpos; ii <= B.xpos; ii++) {
+			PlacePixel(ii, y, colour);
+		}
+		
+		
+
+	}
+	
+	
+	// DrawLine(p1, p2, Pixel{0,254,0,254});
+	// DrawLine(p2, p3, Pixel{0,254,0,254});
+	// DrawLine(p3, p1, Pixel{254,0,0,254});
+
 }
