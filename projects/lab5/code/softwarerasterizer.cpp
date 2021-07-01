@@ -21,6 +21,41 @@ Renderer::~Renderer()
 
 }
 
+void Renderer::Draw()
+{
+
+	
+	for (auto const &object : buffer_handles)
+	{
+		printf("ibo size: %ld \n", object.second.i_buffer.size());
+		for (auto const &index: object.second.i_buffer)
+		{
+			printf("%ld ", index);
+		}
+		printf("\n");
+		for (auto vert: object.second.v_buffer)
+		{
+			printf("vert:  x: %f y: %f \n", vert.pos.GetX(), vert.pos.GetY());
+		}
+		
+		for (size_t i = 0; i+2 < object.second.i_buffer.size(); i+=3)
+		{
+			auto p1 = object.second.v_buffer[object.second.i_buffer[i]].pos;
+			auto p2 = object.second.v_buffer[object.second.i_buffer[i+1]].pos;
+			auto p3 = object.second.v_buffer[object.second.i_buffer[i+2]].pos;
+			Point point1 = {p1.GetX(), p1.GetY()};
+			Point point2 = {p2.GetX(), p2.GetY()};
+			Point point3 = {p3.GetX(), p3.GetY()};
+			
+			printf("[%ld], x: %f, y:%f \n", i, point1.xpos, point1.ypos);
+			RasterizeTriangle(point1, point2, point3, Pixel{rand()%254, rand()%254, rand()%254, 254});
+		}
+		
+	}
+	printf("ending nigger");
+	
+}
+
 void Renderer::AddVertexBuffer(Vertex * buffer) 
 {
 	
@@ -31,10 +66,10 @@ void Renderer::AddIndexBuffer(unsigned int * buffer)
 	
 }
 
-const unsigned int Renderer::AddBuffer(std::vector<Vertex> vbuff, std::vector<unsigned int> ibuff)
+const unsigned int Renderer::AddBuffer(std::vector<Vertex> vbuff, std::vector<unsigned int> ibuff, unsigned int faces)
 {
 	unsigned int t_handle = buffer_handles.size() + 1;
-	buffer_handles.emplace(t_handle, BufferObject(vbuff, ibuff));
+	buffer_handles.emplace(t_handle, BufferObject(vbuff, ibuff, faces));
 	return t_handle;
 }
 
@@ -99,6 +134,15 @@ void Renderer::SetTexture(const Texture &tex)
 void Renderer::DrawLine(Point p1, Point p2 , Pixel colour)
 {
 	bool isSteep = false;
+	int temp_x1, temp_y1, temp_x2, temp_y2;
+	temp_x1 = (p1.xpos * 0.5f + 0.5f) * fb_width;
+	temp_x2 = (p2.xpos * 0.5f + 0.5f) * fb_width;
+	temp_y1 = (p1.ypos * 0.5f + 0.5f) * fb_height;
+	temp_y2 = (p2.ypos * 0.5f + 0.5f) * fb_height;
+	p2.xpos = temp_x2;
+	p2.ypos = temp_y2;
+	p1.xpos = temp_x1;
+	p1.ypos = temp_y1;
 	if (std::abs(p1.xpos - p2.xpos) < std::abs(p1.ypos - p2.ypos))
 	{
 		std::swap(p1.xpos, p1.ypos);
@@ -117,8 +161,11 @@ void Renderer::DrawLine(Point p1, Point p2 , Pixel colour)
 	int error = 0;
 	int y = p1.ypos;
 	
-	for (size_t x = p1.xpos; x <= p2.xpos; x++)
+
+
+	for (size_t x = temp_x1; x <= temp_x2; x++)
 	{
+		
 		if (isSteep)
 			PlacePixel(y, x, colour);
 		else
@@ -127,27 +174,14 @@ void Renderer::DrawLine(Point p1, Point p2 , Pixel colour)
 		error += dError;
 		if (error > dx)
 		{
-			y += (p2.ypos > p1.ypos ? 1 : -1);
+			y += (temp_y2 > temp_y1 ? 1 : -1);
 			error -= dx * 2;
 		}	
-		// float k = (x-p1.xpos) / (float)(p2.xpos-p1.xpos);
-		// int y = p1.ypos * (1.0 - k) + p2.ypos * k;
-		// if (isSteep)
-		// 	PlacePixel(y, x, p);
-		// else
-		// 	PlacePixel(x, y, p);
 	}
 	
 	
 	
 
-	// for (size_t x = p1.xpos; x < p2.xpos; x++)
-	// {
-	// 	float k = (x-p1.xpos) / (float)(p2.xpos-p1.xpos);
-	// 	int y = p1.ypos * (1.0 - k) + (p2.ypos * k);
-	// 	PlacePixel(x, y, p);	
-	// }
-	
 }
 
 void Renderer::PlaceTriangle(Point p1, Point p2, Point p3)
@@ -203,7 +237,7 @@ void Renderer::RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour)
 		if (A.xpos > B.xpos)
 			std::swap(A, B);
 
-
+		
 		for (int ii = A.xpos; ii <= B.xpos; ii++) {
 			PlacePixel(ii, y, colour);
 		}

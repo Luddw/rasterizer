@@ -156,8 +156,9 @@ namespace Example
 			r.RasterizeTriangle(p41,p51,p61, pix3);
 
 			
-
-
+			Point middle = {-0.5, 0.0};
+			Point middle2 = {0.5, 0.0};
+			r.DrawLine(middle,middle2, pix);
 			r.SaveFB();
 			
 
@@ -191,6 +192,73 @@ namespace Example
 	void
 	Lab5::Run()
 	{
+
+		int size = 1;
+		std::vector<Vertex> qube= { 
+		// Left
+		Vertex(Vector4D(-size, -size, -size),	Vector4D(1.0f, 0.75f)),
+		Vertex(Vector4D(-size, -size, size),   Vector4D(0.75f, 0.75f)),
+		Vertex(Vector4D(-size, size, size),		Vector4D(0.75f, 0.5f)),
+		Vertex(Vector4D(-size, size, -size),	 Vector4D(1.0f, 0.5f)),
+
+		// Front
+		Vertex(Vector4D(-size,-size,size),	  Vector4D(0.25f, 0.75f)),
+		Vertex(Vector4D(size, -size, size),	   Vector4D(0.0f, 0.75f)),
+		Vertex(Vector4D(size, size, size),	    Vector4D(0.0f, 0.5f)),
+		Vertex(Vector4D(-size, size, size),	   Vector4D(0.25f, 0.5f)),
+
+
+
+		// Back
+		Vertex(Vector4D(size, -size, -size), Vector4D(0.75f, 0.75f)),
+		Vertex(Vector4D(-size, -size, -size), Vector4D(0.5f, 0.75f)),
+		Vertex(Vector4D(-size, size, -size),   Vector4D(0.5f, 0.5f)),
+		Vertex(Vector4D(size, size, -size),   Vector4D(0.75f, 0.5f)),
+
+
+
+		// Right
+		Vertex(Vector4D(size, -size, size),Vector4D(0.5f, 0.75f)),
+		Vertex(Vector4D(size, -size, -size),Vector4D(0.25f, 0.75f)),
+		Vertex(Vector4D(size, size, -size),Vector4D(0.25f, 0.5f)),  
+		Vertex(Vector4D(size, size, size),  Vector4D(0.5f, 0.5f)),
+
+		Vertex(Vector4D(-size, size, size), Vector4D(0.75f, 0.5f)),
+		Vertex(Vector4D(size, size, size),  Vector4D(0.5f, 0.5f)),
+		Vertex(Vector4D(size, size, -size), Vector4D(0.5f, 0.25f)),
+		Vertex(Vector4D(-size, size, -size), Vector4D(0.75f, 0.25f)),
+
+		// Bottom
+		Vertex(Vector4D(size, -size, size),  Vector4D(0.75f, 1.0f)),  
+		Vertex(Vector4D(-size, -size, size), Vector4D(0.5f, 1.0f)),   
+		Vertex(Vector4D(-size, -size, -size),Vector4D(0.5f, 0.75f)),  
+		Vertex(Vector4D(size, -size, -size),  Vector4D(0.75f, 0.75f))
+
+		};
+
+		std::vector<unsigned int> 	indices = {
+		0,1,3,		//triangle 1 //front
+		2,3,1,		//triagnle 2
+
+		4,5,7,		//triangle 1 //back		
+		6,7,5,		//triagnle 2
+
+		8,9,11,		//triangle 1 //right		
+		10,11,9,		//triagnle 2
+
+		12,13,15,		//triangle 1				
+		14,15,13,		//triagnle 2
+
+		16,17,19,	//triangle 1				
+		18,19,17,		//triagnle 2
+
+		20,21,23,		//triangle 1				
+		22,23,21,	//triagnle 2
+
+
+
+	};
+
 		std::vector<Vertex> quadV = { Vertex(Vector4D(1.0f, 1.0f, 0.0f), Vector4D(1.0f,0.0f)), // top r
 									  Vertex(Vector4D(1.0f, -1.0f,  0.0f), Vector4D(1.0f,1.0f)),  // botom r
 					  				  Vertex(Vector4D(-1.0f, -1.0f, 0.0f), Vector4D(0.0f,1.0f) ),// bot l
@@ -204,6 +272,7 @@ namespace Example
 		MeshResource m(quadV, quadI);
 		m.SetupMeshResource();
 
+		r.AddBuffer(qube,indices, 0);
 		while (this->window->IsOpen())
 		{
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -215,6 +284,7 @@ namespace Example
 			m.BindVao();
 			m.BindIbo();
 //			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,r.GetFramebuffer());
+			//r.Draw();
 			//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, r.GetWidth(), r.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, r.GetFramebuffer());
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 			glBindTexture(GL_TEXTURE_2D, 0);

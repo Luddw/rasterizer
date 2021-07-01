@@ -21,11 +21,13 @@ struct BufferObject
 	
 	std::vector<Vertex> v_buffer;
 	std::vector<unsigned int> i_buffer;
+	unsigned int faces;
 
-	BufferObject(std::vector<Vertex> v_buff, std::vector<unsigned int> i_buff)
+	BufferObject(std::vector<Vertex> v_buff, std::vector<unsigned int> i_buff, unsigned int faces)
 	{
 		this->v_buffer = v_buff;
 		this->i_buffer = i_buff;
+		this->faces = faces;
 	};
 };		
 
@@ -44,8 +46,9 @@ struct Pixel
 
 struct Point
 {
-	int xpos;
-	int ypos;
+	float xpos;
+	float ypos;
+	float zpos;
 	
 	Point operator -(const Point &p) const
 	{
@@ -95,7 +98,7 @@ public:
 	~Renderer();
 	void AddVertexBuffer(Vertex* buffer);
 	void AddIndexBuffer(unsigned int* buffer);
-	const unsigned int AddBuffer(std::vector<Vertex> vbuff, std::vector<unsigned int> ibuff);
+	const unsigned int AddBuffer(std::vector<Vertex> vbuff, std::vector<unsigned int> ibuff, unsigned int faces);
 	void SetupFrameBuffer(int width, int height);
 	Pixel * GetFramebuffer();
 	const int GetFramebufferSize();
