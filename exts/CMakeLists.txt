@@ -28,8 +28,17 @@ ADD_LIBRARY(imgui STATIC imgui/imgui.cpp imgui/imgui_demo.cpp imgui/imgui_draw.c
 			imgui/examples/opengl3_example/imgui_impl_glfw_gl3.h
 			imgui/examples/opengl3_example/imgui_impl_glfw_gl3.cpp)
 
+
+ADD_LIBRARY(mlib STATIC mlib/mat4.h mlib/mlib.h mlib/vec3.h mlib/vec4.h)
+
 TARGET_LINK_LIBRARIES(imgui PUBLIC exts)
 TARGET_INCLUDE_DIRECTORIES(imgui PUBLIC imgui imgui/examples/opengl3_example)
 SET_TARGET_PROPERTIES(imgui PROPERTIES FOLDER "exts/imgui")
 
-TARGET_LINK_LIBRARIES(exts INTERFACE imgui nanovg)
+TARGET_LINK_LIBRARIES(mlib PUBLIC exts)
+TARGET_INCLUDE_DIRECTORIES(mlib PUBLIC mlib)
+SET_TARGET_PROPERTIES(mlib PROPERTIES FOLDER "exts/mlib")
+
+
+
+TARGET_LINK_LIBRARIES(exts INTERFACE imgui nanovg mlib)

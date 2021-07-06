@@ -1,7 +1,6 @@
 #pragma once
-
+#include "mat4.h"
 #include "matlib.h"
-
 #include <GL/glew.h>
 #include <vector>
 
@@ -9,13 +8,13 @@
 
 struct Vertex
 {
-	Vertex() : pos(Vector4D()), uvPos(Vector4D()) { };
+	Vertex() : pos(vec3()), uvPos(vec3()) { };
 	Vertex(const Vertex& other) : pos(other.pos), uvPos(other.uvPos)/*, normal(other.normal) */{ };
-	Vertex(Vector4D position, Vector4D uv) : pos(position), uvPos(uv) { };
-	//Vertex(const Vector4D& position, const Vector4D& uv/*, const Vector4D& norm*/): pos(position), uvPos(uv)/*,normal(norm)*/{};
-	Vector4D pos;
-	Vector4D uvPos;
-/*	Vector4D normal;*/
+	Vertex(vec3 position, vec3 uv) : pos(position), uvPos(uv) { };
+	//Vertex(const vec3& position, const vec3& uv/*, const vec3& norm*/): pos(position), uvPos(uv)/*,normal(norm)*/{};
+	vec3 pos;
+	vec3 uvPos;
+/*	vec3 normal;*/
 
 };
 
@@ -36,7 +35,7 @@ public:
 	~MeshResource();
 	std::vector<GLuint> indices;
 	std::vector<Vertex> vertexss;
-	std::vector<Vector4D> vert;
+	std::vector<vec3> vert;
 	/** method to bind the Vertex array object*/
 	void BindVao() const;
 	/** method to bind the Vertex buffer object*/

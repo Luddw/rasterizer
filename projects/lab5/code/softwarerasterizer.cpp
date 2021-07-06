@@ -35,7 +35,7 @@ void Renderer::Draw()
 		printf("\n");
 		for (auto vert: object.second.v_buffer)
 		{
-			printf("vert:  x: %f y: %f \n", vert.pos.GetX(), vert.pos.GetY());
+			printf("vert:  x: %f y: %f \n", vert.pos.x, vert.pos.y);
 		}
 		
 		for (size_t i = 0; i+2 < object.second.i_buffer.size(); i+=3)
@@ -43,9 +43,9 @@ void Renderer::Draw()
 			auto p1 = object.second.v_buffer[object.second.i_buffer[i]].pos;
 			auto p2 = object.second.v_buffer[object.second.i_buffer[i+1]].pos;
 			auto p3 = object.second.v_buffer[object.second.i_buffer[i+2]].pos;
-			Point point1 = {p1.GetX(), p1.GetY()};
-			Point point2 = {p2.GetX(), p2.GetY()};
-			Point point3 = {p3.GetX(), p3.GetY()};
+			Point point1 = {p1.x, p1.y};
+			Point point2 = {p2.x, p2.y};
+			Point point3 = {p3.x, p3.y};
 			
 			printf("[%ld], x: %f, y:%f \n", i, point1.xpos, point1.ypos);
 			RasterizeTriangle(point1, point2, point3, Pixel{rand()%254, rand()%254, rand()%254, 254});
@@ -139,6 +139,7 @@ void Renderer::DrawLine(Point p1, Point p2 , Pixel colour)
 	temp_x2 = (p2.xpos * 0.5f + 0.5f) * fb_width;
 	temp_y1 = (p1.ypos * 0.5f + 0.5f) * fb_height;
 	temp_y2 = (p2.ypos * 0.5f + 0.5f) * fb_height;
+	
 	p2.xpos = temp_x2;
 	p2.ypos = temp_y2;
 	p1.xpos = temp_x1;

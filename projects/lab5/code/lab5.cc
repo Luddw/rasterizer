@@ -196,43 +196,43 @@ namespace Example
 		int size = 1;
 		std::vector<Vertex> qube= { 
 		// Left
-		Vertex(Vector4D(-size, -size, -size),	Vector4D(1.0f, 0.75f)),
-		Vertex(Vector4D(-size, -size, size),   Vector4D(0.75f, 0.75f)),
-		Vertex(Vector4D(-size, size, size),		Vector4D(0.75f, 0.5f)),
-		Vertex(Vector4D(-size, size, -size),	 Vector4D(1.0f, 0.5f)),
+		Vertex(vec3(-size, -size, -size),	vec3(1.0f, 0.75f,0)),
+		Vertex(vec3(-size, -size, size),   	vec3(0.75f, 0.75f,0)),
+		Vertex(vec3(-size, size, size),		vec3(0.75f, 0.5f,0)),
+		Vertex(vec3(-size, size, -size),	vec3(1.0f, 0.5f,0)),
 
 		// Front
-		Vertex(Vector4D(-size,-size,size),	  Vector4D(0.25f, 0.75f)),
-		Vertex(Vector4D(size, -size, size),	   Vector4D(0.0f, 0.75f)),
-		Vertex(Vector4D(size, size, size),	    Vector4D(0.0f, 0.5f)),
-		Vertex(Vector4D(-size, size, size),	   Vector4D(0.25f, 0.5f)),
+		Vertex(vec3(-size,-size,size),	  	vec3(0.25f, 0.75f,0)),
+		Vertex(vec3(size, -size, size),	  	vec3(0.0f, 0.75f,0)),
+		Vertex(vec3(size, size, size),	    vec3(0.0f, 0.5f,0)),
+		Vertex(vec3(-size, size, size),	   	vec3(0.25f, 0.5f,0)),
 
 
 
 		// Back
-		Vertex(Vector4D(size, -size, -size), Vector4D(0.75f, 0.75f)),
-		Vertex(Vector4D(-size, -size, -size), Vector4D(0.5f, 0.75f)),
-		Vertex(Vector4D(-size, size, -size),   Vector4D(0.5f, 0.5f)),
-		Vertex(Vector4D(size, size, -size),   Vector4D(0.75f, 0.5f)),
+		Vertex(vec3(size, -size, -size), 	vec3(0.75f, 0.75f,0)),
+		Vertex(vec3(-size, -size, -size), 	vec3(0.5f, 0.75f,0)),
+		Vertex(vec3(-size, size, -size),   	vec3(0.5f, 0.5f,0)),
+		Vertex(vec3(size, size, -size),   	vec3(0.75f, 0.5f,0)),
 
 
 
 		// Right
-		Vertex(Vector4D(size, -size, size),Vector4D(0.5f, 0.75f)),
-		Vertex(Vector4D(size, -size, -size),Vector4D(0.25f, 0.75f)),
-		Vertex(Vector4D(size, size, -size),Vector4D(0.25f, 0.5f)),  
-		Vertex(Vector4D(size, size, size),  Vector4D(0.5f, 0.5f)),
+		Vertex(vec3(size, -size, size),	vec3(0.5f, 0.75f,0)),
+		Vertex(vec3(size, -size, -size),vec3(0.25f, 0.75f,0)),
+		Vertex(vec3(size, size, -size),	vec3(0.25f, 0.5f,0)),  
+		Vertex(vec3(size, size, size),  vec3(0.5f, 0.5f,0)),
 
-		Vertex(Vector4D(-size, size, size), Vector4D(0.75f, 0.5f)),
-		Vertex(Vector4D(size, size, size),  Vector4D(0.5f, 0.5f)),
-		Vertex(Vector4D(size, size, -size), Vector4D(0.5f, 0.25f)),
-		Vertex(Vector4D(-size, size, -size), Vector4D(0.75f, 0.25f)),
+		Vertex(vec3(-size, size, size), 	vec3(0.75f, 0.5f,0)),
+		Vertex(vec3(size, size, size), 		vec3(0.5f, 0.5f,0)),
+		Vertex(vec3(size, size, -size), 	vec3(0.5f, 0.25f,0)),
+		Vertex(vec3(-size, size, -size),	vec3(0.75f, 0.25f,0)),
 
 		// Bottom
-		Vertex(Vector4D(size, -size, size),  Vector4D(0.75f, 1.0f)),  
-		Vertex(Vector4D(-size, -size, size), Vector4D(0.5f, 1.0f)),   
-		Vertex(Vector4D(-size, -size, -size),Vector4D(0.5f, 0.75f)),  
-		Vertex(Vector4D(size, -size, -size),  Vector4D(0.75f, 0.75f))
+		Vertex(vec3(size, -size, size),  	vec3(0.75f, 1.0f,0)),  
+		Vertex(vec3(-size, -size, size),	vec3(0.5f, 1.0f,0)),   
+		Vertex(vec3(-size, -size, -size),	vec3(0.5f, 0.75f,0)),  
+		Vertex(vec3(size, -size, -size),  	vec3(0.75f, 0.75f,0))
 
 		};
 
@@ -259,10 +259,10 @@ namespace Example
 
 	};
 
-		std::vector<Vertex> quadV = { Vertex(Vector4D(1.0f, 1.0f, 0.0f), Vector4D(1.0f,0.0f)), // top r
-									  Vertex(Vector4D(1.0f, -1.0f,  0.0f), Vector4D(1.0f,1.0f)),  // botom r
-					  				  Vertex(Vector4D(-1.0f, -1.0f, 0.0f), Vector4D(0.0f,1.0f) ),// bot l
-									  Vertex(Vector4D(-1.0f, 1.0f, 0.0f), Vector4D(0.0f,0.0f)) };//top l
+		std::vector<Vertex> quadV = { Vertex(vec3(1.0f, 1.0f, 0.0f), vec3(1.0f,0.0f,0)), // top r
+									  Vertex(vec3(1.0f, -1.0f,  0.0f), vec3(1.0f,1.0f,0)),  // botom r
+					  				  Vertex(vec3(-1.0f, -1.0f, 0.0f), vec3(0.0f,1.0f,0) ),// bot l
+									  Vertex(vec3(-1.0f, 1.0f, 0.0f), vec3(0.0f,0.0f,0)) };//top l
 
 		std::vector<GLuint> quadI = { 0,1,3,
 									  1,2,3};
@@ -284,7 +284,7 @@ namespace Example
 			m.BindVao();
 			m.BindIbo();
 //			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,r.GetFramebuffer());
-			//r.Draw();
+			r.Draw();
 			//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, r.GetWidth(), r.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, r.GetFramebuffer());
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 			glBindTexture(GL_TEXTURE_2D, 0);

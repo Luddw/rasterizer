@@ -127,44 +127,44 @@ void MeshResource::DrawCube(float size)
 
 	vertexss = { 
 		// Left
-		Vertex(Vector4D(-size, -size, -size),	Vector4D(1.0f, 0.75f),Vector4D(-1,0,0)),
-		Vertex(Vector4D(-size, -size, size),   Vector4D(0.75f, 0.75f),Vector4D(-1,0,0)),
-		Vertex(Vector4D(-size, size, size),		Vector4D(0.75f, 0.5f),Vector4D(-1,0,0)),
-		Vertex(Vector4D(-size, size, -size),	 Vector4D(1.0f, 0.5f),Vector4D(-1,0,0)),
+		Vertex(vec4(-size, -size, -size),	vec4(1.0f, 0.75f),vec4(-1,0,0)),
+		Vertex(vec4(-size, -size, size),   vec4(0.75f, 0.75f),vec4(-1,0,0)),
+		Vertex(vec4(-size, size, size),		vec4(0.75f, 0.5f),vec4(-1,0,0)),
+		Vertex(vec4(-size, size, -size),	 vec4(1.0f, 0.5f),vec4(-1,0,0)),
 
 		// Front
-		Vertex(Vector4D(-size,-size,size),	  Vector4D(0.25f, 0.75f),Vector4D(0,0,1)),
-		Vertex(Vector4D(size, -size, size),	   Vector4D(0.0f, 0.75f),Vector4D(0,0,1)),
-		Vertex(Vector4D(size, size, size),	    Vector4D(0.0f, 0.5f),Vector4D(0,0,1)),
-		Vertex(Vector4D(-size, size, size),	   Vector4D(0.25f, 0.5f),Vector4D(0,0,1)),
+		Vertex(vec4(-size,-size,size),	  vec4(0.25f, 0.75f),vec4(0,0,1)),
+		Vertex(vec4(size, -size, size),	   vec4(0.0f, 0.75f),vec4(0,0,1)),
+		Vertex(vec4(size, size, size),	    vec4(0.0f, 0.5f),vec4(0,0,1)),
+		Vertex(vec4(-size, size, size),	   vec4(0.25f, 0.5f),vec4(0,0,1)),
 
 
 
 		// Back
-		Vertex(Vector4D(size, -size, -size), Vector4D(0.75f, 0.75f),Vector4D(0,0,-1)),
-		Vertex(Vector4D(-size, -size, -size), Vector4D(0.5f, 0.75f),Vector4D(0,0,-1)),
-		Vertex(Vector4D(-size, size, -size),   Vector4D(0.5f, 0.5f),Vector4D(0,0,-1)),
-		Vertex(Vector4D(size, size, -size),   Vector4D(0.75f, 0.5f),Vector4D(0,0,-1)),
+		Vertex(vec4(size, -size, -size), vec4(0.75f, 0.75f),vec4(0,0,-1)),
+		Vertex(vec4(-size, -size, -size), vec4(0.5f, 0.75f),vec4(0,0,-1)),
+		Vertex(vec4(-size, size, -size),   vec4(0.5f, 0.5f),vec4(0,0,-1)),
+		Vertex(vec4(size, size, -size),   vec4(0.75f, 0.5f),vec4(0,0,-1)),
 
 
 
 		// Right
-		Vertex(Vector4D(size, -size, size),Vector4D(0.5f, 0.75f),  Vector4D(1,0,0)),
-		Vertex(Vector4D(size, -size, -size),Vector4D(0.25f, 0.75f),Vector4D(1,0,0)),
-		Vertex(Vector4D(size, size, -size),Vector4D(0.25f, 0.5f),  Vector4D(1,0,0)),
-		Vertex(Vector4D(size, size, size),  Vector4D(0.5f, 0.5f),  Vector4D(1,0,0)),
+		Vertex(vec4(size, -size, size),vec4(0.5f, 0.75f),  vec4(1,0,0)),
+		Vertex(vec4(size, -size, -size),vec4(0.25f, 0.75f),vec4(1,0,0)),
+		Vertex(vec4(size, size, -size),vec4(0.25f, 0.5f),  vec4(1,0,0)),
+		Vertex(vec4(size, size, size),  vec4(0.5f, 0.5f),  vec4(1,0,0)),
 
 		// Top
-		Vertex(Vector4D(-size, size, size), Vector4D(0.75f, 0.5f),  Vector4D(0,1,0)),
-		Vertex(Vector4D(size, size, size),  Vector4D(0.5f, 0.5f),   Vector4D(0,1,0)),
-		Vertex(Vector4D(size, size, -size), Vector4D(0.5f, 0.25f),  Vector4D(0,1,0)),
-		Vertex(Vector4D(-size, size, -size), Vector4D(0.75f, 0.25f),Vector4D(0,1,0)),
+		Vertex(vec4(-size, size, size), vec4(0.75f, 0.5f),  vec4(0,1,0)),
+		Vertex(vec4(size, size, size),  vec4(0.5f, 0.5f),   vec4(0,1,0)),
+		Vertex(vec4(size, size, -size), vec4(0.5f, 0.25f),  vec4(0,1,0)),
+		Vertex(vec4(-size, size, -size), vec4(0.75f, 0.25f),vec4(0,1,0)),
 
 		// Bottom
-		Vertex(Vector4D(size, -size, size),  Vector4D(0.75f, 1.0f),  Vector4D(0,-1,0)),
-		Vertex(Vector4D(-size, -size, size), Vector4D(0.5f, 1.0f),   Vector4D(0,-1,0)),
-		Vertex(Vector4D(-size, -size, -size),Vector4D(0.5f, 0.75f),  Vector4D(0,-1,0)),
-		Vertex(Vector4D(size, -size, -size),  Vector4D(0.75f, 0.75f),Vector4D(0,-1,0)),
+		Vertex(vec4(size, -size, size),  vec4(0.75f, 1.0f),  vec4(0,-1,0)),
+		Vertex(vec4(-size, -size, size), vec4(0.5f, 1.0f),   vec4(0,-1,0)),
+		Vertex(vec4(-size, -size, -size),vec4(0.5f, 0.75f),  vec4(0,-1,0)),
+		Vertex(vec4(size, -size, -size),  vec4(0.75f, 0.75f),vec4(0,-1,0)),
 	};
 	indices = {
 	0,1,3,		//triangle 1 //front
@@ -201,14 +201,14 @@ void MeshResource::DrawCube(float size)
 
 void MeshResource::ObjLoad(const char* filepath)
 {
-	//std::vector<Vector4D> &file_verts;
-	//std::vector<Vector4D> &file_uvs;
-	//std::vector<Vector4D> &file_norms;
+	//std::vector<vec4> &file_verts;
+	//std::vector<vec4> &file_uvs;
+	//std::vector<vec4> &file_norms;
 
 	std::vector<GLuint> vertexIndices, uvIndices, normIndices;
-	std::vector<Vector4D> t_verts;
-	std::vector<Vector4D> t_uvs;
-	std::vector<Vector4D> t_norms;
+	std::vector<vec4> t_verts;
+	std::vector<vec4> t_uvs;
+	std::vector<vec4> t_norms;
 
 	std::ifstream stream(filepath);
 	std::string line;
@@ -247,7 +247,7 @@ void MeshResource::ObjLoad(const char* filepath)
 		{
 		case v:
 		{
-			Vector4D vert;
+			vec4 vert;
 			for (size_t i = 1; i < 4; i++)
 			{
 				scanf(tokens[i].c_str(), "%f", &vert[i - 1]);
@@ -258,7 +258,7 @@ void MeshResource::ObjLoad(const char* filepath)
 		}
 		case vt:
 		{
-			Vector4D uv(0,0);
+			vec3 uv(0,0,0);
 			for (size_t i = 1; i < 3; i++)
 			{
 				scanf(tokens[i].c_str(), "%f", &uv[i - 1]);
@@ -266,12 +266,12 @@ void MeshResource::ObjLoad(const char* filepath)
 			}
 
 
-			t_uvs.emplace_back(uv);
+			//t_uvs.emplace_back(uv);
 			break;
 		}
 		case vn:
 		{
-			Vector4D norm;
+			vec4 norm;
 			for (size_t i = 1; i < 4; i++)
 			{
 				scanf(tokens[i].c_str(), "%f", &norm[i - 1]);
@@ -344,7 +344,7 @@ void MeshResource::ObjLoad(const char* filepath)
 		}
 
 	}
-	std::vector<Vector4D> buf;
+	std::vector<vec4> buf;
 	vertexss.clear();
 	vert.clear();
 	indices.clear();
@@ -356,9 +356,9 @@ void MeshResource::ObjLoad(const char* filepath)
 		unsigned int normIndex = normIndices[i];
 
 	
-		Vector4D vertex = t_verts[vertIndex - 1];
-		Vector4D uv = t_uvs[uvIndex - 1];
-		Vector4D norm = t_norms[normIndex - 1];
+		vec4 vertex = t_verts[vertIndex - 1];
+		vec4 uv = t_uvs[uvIndex - 1];
+		vec4 norm = t_norms[normIndex - 1];
 		
 		/*vertexss.emplace_back(Vertex(vertex, uv, norm));*/
 		indices.emplace_back(i);
