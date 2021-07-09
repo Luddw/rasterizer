@@ -19,6 +19,7 @@ struct vec3
     {
         // empty
     }
+    vec3(float const x, float const y) : x(x), y(y), z(0) {};
 
     vec3 operator+(vec3 const& rhs) const { return {x + rhs.x, y + rhs.y, z + rhs.z}; }
     void operator+=(vec3 const& rhs) { x += rhs.x; y += rhs.y; z += rhs.z; }
@@ -26,9 +27,13 @@ struct vec3
     void operator-=(vec3 const& rhs) { x -= rhs.x; y -= rhs.y; z -= rhs.z; }
     vec3 operator-() const { return {-x, -y, -z}; }
     vec3 operator*(float const c) const { return {x * c, y * c, z * c}; }
+    vec3 operator/(float const c) const { return {x / c, y / c, z / c}; }
     void operator*=(float const c) { x *= c; y *= c; z *= c; }
     bool operator==(vec3 const& rhs) { return (x == rhs.x && y == rhs.y && z == rhs.z); }
+    bool operator==(vec3 const& rhs) const { return (x == rhs.x && y == rhs.y && z == rhs.z); }
+    
     bool operator!=(vec3 const& rhs) { return (x != rhs.x && y != rhs.y && z != rhs.z); }
+    bool operator!=(vec3 const& rhs) const { return (x != rhs.x && y != rhs.y && z != rhs.z); }
     float& operator[](unsigned int i) { assert(i >= 0 && i < 3); return v[i]; }
 };
 

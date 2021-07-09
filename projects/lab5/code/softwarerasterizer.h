@@ -23,6 +23,7 @@ struct BufferObject
 	std::vector<Vertex> v_buffer;
 	std::vector<unsigned int> i_buffer;
 
+	BufferObject() : v_buffer(), i_buffer() {};
 	BufferObject(std::vector<Vertex> v_buff, std::vector<unsigned int> i_buff)
 	{
 		this->v_buffer = v_buff;
@@ -106,7 +107,7 @@ public:
 	void SetFragmentShader(std::function<void(Vertex)> frag_lambda);
 	int GetHeight();
 	int GetWidth();
-	void Draw();
+	void Draw(unsigned int handle);
 	void RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour);
 	void PlaceTriangle(Point p1, Point p2, Point p3);
 	void SetModelViewProjectionMatrix(const Matrix4D &mvp);
@@ -115,7 +116,7 @@ public:
 	void SaveFB();
 	void BresenhamLine(int x1, int y1, int x2, int y2);
 	void DrawModel(MeshResource mesh);
-	void LoadOBJModel(const char *filename);
+	bool LoadOBJModel(std::string filename);
 private:
 	//GLuint vbo{}, ibo{};
 	//GLuint fbo;

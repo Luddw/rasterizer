@@ -159,10 +159,8 @@ namespace Example
 			Point middle = {-0.5, 0.0};
 			Point middle2 = {0.5, 0.0};
 			r.DrawLine(middle,middle2, pix);
-			r.LoadOBJModel("./resources/suz.obj");
-			r.Draw();
-			r.SaveFB();
 			
+			r.SaveFB();
 
 			
 			glGenTextures(1, &tex_h);
@@ -179,6 +177,8 @@ namespace Example
 
 
 			glBindTexture(GL_TEXTURE_2D, 0);
+			
+			r.LoadOBJModel("./resources/suz.obj");
 
 
 			return true;
@@ -198,43 +198,43 @@ namespace Example
 		auto size = 0.5;
 		std::vector<Vertex> qube= { 
 		// Left
-		Vertex(vec3(-size, -size, -size),	vec3(1.0f, 0.75f,0)  , vec4()),
-		Vertex(vec3(-size, -size, size),   	vec3(0.75f, 0.75f,0) , vec4()),
-		Vertex(vec3(-size, size, size),		vec3(0.75f, 0.5f,0)  , vec4()),
-		Vertex(vec3(-size, size, -size),	vec3(1.0f, 0.5f,0)   , vec4()),
+		Vertex(vec3(-size, -size, -size),	vec3(1.0f, 0.75f,0)  , vec3()),
+		Vertex(vec3(-size, -size, size),   	vec3(0.75f, 0.75f,0) , vec3()),
+		Vertex(vec3(-size, size, size),		vec3(0.75f, 0.5f,0)  , vec3()),
+		Vertex(vec3(-size, size, -size),	vec3(1.0f, 0.5f,0)   , vec3()),
 
 		// Front
-		Vertex(vec3(-size,-size,size),	  	vec3(0.25f, 0.75f,0), vec4()),
-		Vertex(vec3(size, -size, size),	  	vec3(0.0f, 0.75f,0)	, vec4()),
-		Vertex(vec3(size, size, size),	    vec3(0.0f, 0.5f,0) 	, vec4()),
-		Vertex(vec3(-size, size, size),	   	vec3(0.25f, 0.5f,0)	, vec4()),
+		Vertex(vec3(-size,-size,size),	  	vec3(0.25f, 0.75f,0), vec3()),
+		Vertex(vec3(size, -size, size),	  	vec3(0.0f, 0.75f,0)	, vec3()),
+		Vertex(vec3(size, size, size),	    vec3(0.0f, 0.5f,0) 	, vec3()),
+		Vertex(vec3(-size, size, size),	   	vec3(0.25f, 0.5f,0)	, vec3()),
 
 
 
 		// Back
-		Vertex(vec3(size, -size, -size), 	vec3(0.75f, 0.75f,0), vec4()),
-		Vertex(vec3(-size, -size, -size), 	vec3(0.5f, 0.75f,0)	, vec4()),
-		Vertex(vec3(-size, size, -size),   	vec3(0.5f, 0.5f,0)	, vec4()),
-		Vertex(vec3(size, size, -size),   	vec3(0.75f, 0.5f,0)	, vec4()),
+		Vertex(vec3(size, -size, -size), 	vec3(0.75f, 0.75f,0), vec3()),
+		Vertex(vec3(-size, -size, -size), 	vec3(0.5f, 0.75f,0)	, vec3()),
+		Vertex(vec3(-size, size, -size),   	vec3(0.5f, 0.5f,0)	, vec3()),
+		Vertex(vec3(size, size, -size),   	vec3(0.75f, 0.5f,0)	, vec3()),
 
 
 
 		// Right
-		Vertex(vec3(size, -size, size),	vec3(0.5f, 0.75f,0)	, vec4()),
-		Vertex(vec3(size, -size, -size),vec3(0.25f, 0.75f,0), vec4()),
-		Vertex(vec3(size, size, -size),	vec3(0.25f, 0.5f,0)	, vec4()),  
-		Vertex(vec3(size, size, size),  vec3(0.5f, 0.5f,0)	, vec4()),
+		Vertex(vec3(size, -size, size),	vec3(0.5f, 0.75f,0)	, vec3()),
+		Vertex(vec3(size, -size, -size),vec3(0.25f, 0.75f,0), vec3()),
+		Vertex(vec3(size, size, -size),	vec3(0.25f, 0.5f,0)	, vec3()),  
+		Vertex(vec3(size, size, size),  vec3(0.5f, 0.5f,0)	, vec3()),
 
-		Vertex(vec3(-size, size, size), 	vec3(0.75f, 0.5f,0)	, vec4()),
-		Vertex(vec3(size, size, size), 		vec3(0.5f, 0.5f,0)	, vec4()),
-		Vertex(vec3(size, size, -size), 	vec3(0.5f, 0.25f,0)	, vec4()),
-		Vertex(vec3(-size, size, -size),	vec3(0.75f, 0.25f,0), vec4()),
+		Vertex(vec3(-size, size, size), 	vec3(0.75f, 0.5f,0)	, vec3()),
+		Vertex(vec3(size, size, size), 		vec3(0.5f, 0.5f,0)	, vec3()),
+		Vertex(vec3(size, size, -size), 	vec3(0.5f, 0.25f,0)	, vec3()),
+		Vertex(vec3(-size, size, -size),	vec3(0.75f, 0.25f,0), vec3()),
 
 		// Bottom
-		Vertex(vec3(size, -size, size),  	vec3(0.75f, 1.0f,0)  , vec4()),  
-		Vertex(vec3(-size, -size, size),	vec3(0.5f, 1.0f,0)   , vec4()),   
-		Vertex(vec3(-size, -size, -size),	vec3(0.5f, 0.75f,0)  , vec4()),  
-		Vertex(vec3(size, -size, -size),  	vec3(0.75f, 0.75f,0) , vec4())
+		Vertex(vec3(size, -size, size),  	vec3(0.75f, 1.0f,0)  , vec3()),  
+		Vertex(vec3(-size, -size, size),	vec3(0.5f, 1.0f,0)   , vec3()),   
+		Vertex(vec3(-size, -size, -size),	vec3(0.5f, 0.75f,0)  , vec3()),  
+		Vertex(vec3(size, -size, -size),  	vec3(0.75f, 0.75f,0) , vec3())
 
 		};
 
@@ -261,10 +261,10 @@ namespace Example
 
 	};
 
-		std::vector<Vertex> quadV = { Vertex(vec3(1.0f, 1.0f, 0.0f), vec3(1.0f,0.0f,0), vec4()), // top r
-									  Vertex(vec3(1.0f, -1.0f,  0.0f), vec3(1.0f,1.0f,0), vec4()),  // botom r
-					  				  Vertex(vec3(-1.0f, -1.0f, 0.0f), vec3(0.0f,1.0f,0), vec4()),// bot l
-									  Vertex(vec3(-1.0f, 1.0f, 0.0f), vec3(0.0f,0.0f,0), vec4()) };//top l
+		std::vector<Vertex> quadV = { Vertex(vec3(1.0f, 1.0f, 0.0f), vec3(1.0f,0.0f,0), vec3()), // top r
+									  Vertex(vec3(1.0f, -1.0f,  0.0f), vec3(1.0f,1.0f,0), vec3()),  // botom r
+					  				  Vertex(vec3(-1.0f, -1.0f, 0.0f), vec3(0.0f,1.0f,0), vec3()),// bot l
+									  Vertex(vec3(-1.0f, 1.0f, 0.0f), vec3(0.0f,0.0f,0), vec3()) };//top l
 
 		std::vector<GLuint> quadI = { 0,1,3,
 									  1,2,3};
@@ -275,7 +275,7 @@ namespace Example
 		m.SetupMeshResource();
 		//r.LoadOBJModel("./resources/suz.obj");
 		//r.AddBuffer(qube,indices, 0);
-		r.Draw();
+		
 		while (this->window->IsOpen())
 		{
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -283,6 +283,7 @@ namespace Example
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, tex_h);
 			quadShader.SetUniformTex("tex", 0);
+			r.Draw(1);	
 
 			m.BindVao();
 			m.BindIbo();

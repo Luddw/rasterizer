@@ -6,9 +6,11 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "objloader.h"
 
 Renderer::Renderer() : fb_width(0), fb_height(0), frame_buffer(nullptr), depth_buffer(nullptr)
 {
+
 }
 
 Renderer::Renderer(const int width, const int height)
@@ -40,39 +42,31 @@ void Renderer::DrawModel(MeshResource mesh)
 	
 }
 
-void Renderer::Draw()
+void Renderer::Draw(unsigned int handle)
 {
+	
+	auto object = buffer_handles[handle];
+	
+	printf("objects to draw: %ld \n", buffer_handles.size());
+	printf("v size: %ld | i size: %ld \n", object.v_buffer.size(), object.i_buffer.size());
+		
+	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
+	{
+		auto p1 = object.v_buffer[object.i_buffer[i]].pos;
+		auto p2 = object.v_buffer[object.i_buffer[i+1]].pos;
+		auto p3 = object.v_buffer[object.i_buffer[i+2]].pos;
+		Point point1 = {p1.x, p1.y, 0};
+		Point point2 = {p2.x, p2.y, 0};
+		Point point3 = {p3.x, p3.y, 0};
+		
+		printf("[%ld], x: %f, y: %f \n", i, point1.xpos, point1.ypos);
+		RasterizeTriangle(point1, point2, point3, Pixel{40,50,100, 254});
+
+	}
+
 
 	
-	for (auto const &object : buffer_handles)
-	{
-		printf("ibo size: %ld \n", object.second.i_buffer.size());
-		for (auto const &index: object.second.i_buffer)
-		{
-			printf("%d ", index);
-		}
-		printf("\n");
-		for (auto vert: object.second.v_buffer)
-		{
-			printf("vert:  x: %f y: %f \n", vert.pos.x, vert.pos.y);
-		}
-		
-		for (size_t i = 0; i < object.second.i_buffer.size(); i+=3)
-		{
-			auto p1 = object.second.v_buffer[object.second.i_buffer[i]].pos;
-			auto p2 = object.second.v_buffer[object.second.i_buffer[i+1]].pos;
-			auto p3 = object.second.v_buffer[object.second.i_buffer[i+2]].pos;
-			Point point1 = {p1.x, p1.y};
-			Point point2 = {p2.x, p2.y};
-			Point point3 = {p3.x, p3.y};
-			
-			printf("[%ld], x: %f, y:%f \n", i, point1.xpos, point1.ypos);
-			RasterizeTriangle(point1, point2, point3, Pixel{40,50,100, 254});
-		}
-		
-		printf("ending");
-	}
-	
+
 }
 
 void Renderer::AddVertexBuffer(Vertex * buffer) 
@@ -213,6 +207,7 @@ void Renderer::PlaceTriangle(Point p1, Point p2, Point p3)
 
 void Renderer::RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour)
 {
+	printf("rasterize....\n");
 	// sort each vertex by Y-pos, if-ladder
 	if (p1.ypos > p2.ypos)
 		std::swap(p1, p2);
@@ -220,8 +215,10 @@ void Renderer::RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour)
 		std::swap(p1, p3);
 	if (p2.ypos > p3.ypos)
 		std::swap(p2, p3);
+	printf("rasterize....\n");
 
-	int height = p3.ypos - p1.ypos; //totalt "height" of the triangle to raster
+	float height = p3.ypos - p1.ypos; //totalt "height" of the triangle to raster
+	printf("rasterize....\n");
 
 
 	for (int y = p1.ypos; y <= p2.ypos; y++)
@@ -243,6 +240,7 @@ void Renderer::RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour)
 
 	}
 
+	printf("rasterize....\n");
 
 
 	for (int y = p2.ypos; y <= p3.ypos; y++)
@@ -264,7 +262,7 @@ void Renderer::RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour)
 
 	}
 	
-	
+
 	// DrawLine(p1, p2, Pixel{0,254,0,254});
 	// DrawLine(p2, p3, Pixel{0,254,0,254});
 	// DrawLine(p3, p1, Pixel{254,0,0,254});
@@ -275,176 +273,25 @@ void Renderer::RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour)
 
 }
 
-void Renderer::LoadOBJModel(const char* filename)
+bool Renderer::LoadOBJModel(std::string filename)
 {
+
 	std::vector<Vertex> outVerts;
 	std::vector<unsigned int> outIndices;
-	std::vector<GLuint> vertexIndices, uvIndices, normIndices;
-	std::vector<vec3> t_verts;
-	std::vector<vec3> t_uvs;
-	std::vector<vec4> t_norms;
+	Loader loader;
+	bool loadout = loader.LoadFile(filename);
+	if (loadout != true)
+		return false;
 
-	std::ifstream stream(filename);
-	std::string line;
-
-	enum type
+	outIndices = loader.LoadedIndices;
+	auto v = loader.LoadedMeshes;
+	for (size_t i = 0; i < loader.LoadedVertices.size(); i++)
 	{
-		v, vt, vn, f, none
-	};
-
-	printf("loading file: %s \n", filename);
-	while (getline(stream, line))
-	{
-		std::string tmp;
-		std::stringstream ss(line);
-		std::vector<std::string> tokens;
-		while (getline(ss, tmp, ' '))
-		{
-			tokens.emplace_back(tmp);
-		}
-		if (tokens.empty())
-			continue;
-
-		type t = none;
-		if (tokens[0] == "v")
-			t = v;
-		else if (tokens[0] == "vt")
-			t = vt;
-		else if (tokens[0] == "vn")
-			t = vn;
-		else if (tokens[0] == "f")
-			t = f;
-		else if (tokens[0] == "#")
-			continue;
-
-		//std::cout << tokens[0] << std::endl;
-
-		switch (t)
-		{
-		case v:
-		{
-			vec3 vert;
-			for (size_t i = 1; i < 4; i++)
-			{
-				scanf(tokens[i].c_str(), "%f", &vert[i - 1]);
-			}
-
-			t_verts.emplace_back(vert);
-			break;
-		}
-		case vt:
-		{
-			vec3 uv(0,0,0);
-			for (size_t i = 1; i < 3; i++)
-			{
-				scanf(tokens[i].c_str(), "%f", &uv[i - 1]);
-
-			}
-
-
-			//t_uvs.emplace_back(uv);
-			break;
-		}
-		case vn:
-		{
-			vec4 norm;
-			for (size_t i = 1; i < 4; i++)
-			{
-				scanf(tokens[i].c_str(), "%f", &norm[i - 1]);
-
-			}
-
-			t_norms.emplace_back(norm);
-			break;
-		}
-		case f:
-		{
-			unsigned int vert, uvs, norms;
-
-
-			if (tokens.size() == 4) //triangle
-			{
-				for (size_t i = 1; i < 4; i++)
-				{
-					//scanf(tokens[i].c_str(), "%d/%d/%d", &verts,  &uvs, &norms);
-					scanf(tokens[i].c_str(), "%d/%d/%d", &vert, &uvs, &norms);
-
-
-					vertexIndices.emplace_back(vert);
-					uvIndices.emplace_back(uvs);
-					normIndices.emplace_back(norms);
-				}
-
-
-			}
-			else if (tokens.size() == 5) //quad
-			{
-				std::vector<GLuint> tempverts, tempuvs, tempnorms;
-				for (size_t i = 1; i < 5; i++)
-				{
-					scanf(tokens[i].c_str(), "%d/%d/%d" , &vert, &uvs, &norms);
-
-
-					tempverts.emplace_back(vert);
-					tempuvs.emplace_back(uvs);
-					tempnorms.emplace_back(norms);
-				}
-				vertexIndices.emplace_back(tempverts[0]);
-				vertexIndices.emplace_back(tempverts[1]);
-				vertexIndices.emplace_back(tempverts[3]);
-				vertexIndices.emplace_back(tempverts[2]);
-				vertexIndices.emplace_back(tempverts[3]);
-				vertexIndices.emplace_back(tempverts[1]);
-
-				uvIndices.emplace_back(tempuvs[0]);
-				uvIndices.emplace_back(tempuvs[1]);
-				uvIndices.emplace_back(tempuvs[3]);
-				uvIndices.emplace_back(tempuvs[2]);
-				uvIndices.emplace_back(tempuvs[3]);
-				uvIndices.emplace_back(tempuvs[1]);
-
-				normIndices.emplace_back(tempnorms[0]);
-				normIndices.emplace_back(tempnorms[1]);
-				normIndices.emplace_back(tempnorms[3]);
-				normIndices.emplace_back(tempnorms[2]);
-				normIndices.emplace_back(tempnorms[3]);
-				normIndices.emplace_back(tempnorms[1]);
-
-			}
-
-
-			break;
-		}
-		default:
-			break;
-		}
-
+		outVerts.emplace_back(loader.LoadedVertices[i]);
 	}
-	std::vector<vec4> buf;
-	// vertexss.clear();
-	// vert.clear();
-	// indices.clear();
-
-	for (size_t i = 0; i < vertexIndices.size(); i++)
-	{
-		unsigned int vertIndex = vertexIndices[i];
-		unsigned int uvIndex = uvIndices[i];
-		unsigned int normIndex = normIndices[i];
-
 	
-		vec3 vertex = t_verts[vertIndex - 1];
-		vec3 uv = t_uvs[uvIndex - 1];
-		vec4 norm = t_norms[normIndex - 1];
-
-		outVerts.emplace_back(Vertex(vertex, uv, norm));		
-		outIndices.emplace_back(i);
-	}
-
-	std::cout <<"pos: " << vertexIndices.size() << std::endl;
-	std::cout <<"uvs: " << uvIndices.size() << std::endl;
-	std::cout <<"norms: " << normIndices.size() << std::endl;
-
+	printf("vsize: %ld isize: %ld \n", outVerts.size(), outIndices.size());
 	AddBuffer(outVerts, outIndices, 0);
 
-
+	return true;
 }
