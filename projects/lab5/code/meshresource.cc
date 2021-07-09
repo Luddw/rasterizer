@@ -201,13 +201,10 @@ void MeshResource::DrawCube(float size)
 
 void MeshResource::ObjLoad(const char* filepath)
 {
-	//std::vector<vec4> &file_verts;
-	//std::vector<vec4> &file_uvs;
-	//std::vector<vec4> &file_norms;
 
 	std::vector<GLuint> vertexIndices, uvIndices, normIndices;
-	std::vector<vec4> t_verts;
-	std::vector<vec4> t_uvs;
+	std::vector<vec3> t_verts;
+	std::vector<vec3> t_uvs;
 	std::vector<vec4> t_norms;
 
 	std::ifstream stream(filepath);
@@ -247,7 +244,7 @@ void MeshResource::ObjLoad(const char* filepath)
 		{
 		case v:
 		{
-			vec4 vert;
+			vec3 vert;
 			for (size_t i = 1; i < 4; i++)
 			{
 				scanf(tokens[i].c_str(), "%f", &vert[i - 1]);
@@ -356,8 +353,8 @@ void MeshResource::ObjLoad(const char* filepath)
 		unsigned int normIndex = normIndices[i];
 
 	
-		vec4 vertex = t_verts[vertIndex - 1];
-		vec4 uv = t_uvs[uvIndex - 1];
+		vec3 vertex = t_verts[vertIndex - 1];
+		vec3 uv = t_uvs[uvIndex - 1];
 		vec4 norm = t_norms[normIndex - 1];
 		
 		/*vertexss.emplace_back(Vertex(vertex, uv, norm));*/

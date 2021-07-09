@@ -8,6 +8,7 @@
 #include <utility>
 #include <functional>
 #include "texture.h"
+#include "modelraster.h"
 //struct Vertex
 //{
 //	Vector4D pos;
@@ -21,13 +22,11 @@ struct BufferObject
 	
 	std::vector<Vertex> v_buffer;
 	std::vector<unsigned int> i_buffer;
-	unsigned int faces;
 
-	BufferObject(std::vector<Vertex> v_buff, std::vector<unsigned int> i_buff, unsigned int faces)
+	BufferObject(std::vector<Vertex> v_buff, std::vector<unsigned int> i_buff)
 	{
 		this->v_buffer = v_buff;
 		this->i_buffer = i_buff;
-		this->faces = faces;
 	};
 };		
 
@@ -115,6 +114,8 @@ public:
 	void SetTexture(const Texture &tex);
 	void SaveFB();
 	void BresenhamLine(int x1, int y1, int x2, int y2);
+	void DrawModel(MeshResource mesh);
+	void LoadOBJModel(const char *filename);
 private:
 	//GLuint vbo{}, ibo{};
 	//GLuint fbo;
