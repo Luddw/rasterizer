@@ -109,6 +109,7 @@ public:
 	int GetWidth();
 	void Draw(unsigned int handle);
 	void RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour);
+	void BarRasterizeTriangle(vec3* points, Pixel colour);
 	void PlaceTriangle(Point p1, Point p2, Point p3);
 	void SetModelViewProjectionMatrix(const Matrix4D &mvp);
 	void DrawLine(Point p1, Point p2 , Pixel colour);

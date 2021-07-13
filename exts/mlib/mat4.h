@@ -450,5 +450,20 @@ lookat(vec3 const & eye, vec3 const & target, vec3 const & upvect)
     //     vec4(0, 0, 0, 1)
     //     }; 
 }
+inline vec3
+barycentric(vec3* points, vec3 P)
+{
+    //calc u from the formula.
+    vec3 u = cross(
+        vec3(points[2][0] - points[0][0], points[1][0] - points[0][0], points[0][0] - P[0]), // u
+        vec3(points[2][1] - points[0][1], points[1][1] - points[0][1], points[0][1] - P[1])  // v
+    );
+
+    // edge-case in case of degen-triangle
+    if (std::abs(u[2] < 1))
+        return vec3(-1,1,1);
+
+    return vec3(1.0f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+}
 inline mat4 mat4::operator*(mat4 const& rhs) const {return multiply(*this, rhs);}
 inline vec4 mat4::operator*(vec4 const& v) const {return transform(v, *this);}

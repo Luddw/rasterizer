@@ -132,28 +132,19 @@ namespace Example
 			
 			this->window->GetSize(w, h);
 			r = Renderer(w, h);
-			Point p1 = {100, 50};
-			Point p2 = {300, 100};
-			Point p3 = {40, 400};
 
-			
-			
-			Pixel pix1 = {254, 0, 0, 254};
-			r.RasterizeTriangle(p1,p2,p3, pix1);
+			vec3 points[3];
+			vec3 p1 = {0.5, 0.75};
+			vec3 p2 = {-0.5, 0.75};
+			vec3 p3 = {0, 0.5};
+			points[0] = p1;
+			points[1] = p2;
+			points[2] = p3;
 
-			Point p4 = {400,600};
-			Point p5 = {350,100};
-			Point p6 = {600,350};
+
+
 
 			Pixel pix = {0,254,50,254};
-			r.RasterizeTriangle(p4,p5,p6, pix);
-
-			Point p41 = {650,50};
-			Point p51 = {800,25};
-			Point p61 = {700,250};
-
-			Pixel pix3 = {0,25,254,254};
-			r.RasterizeTriangle(p41,p51,p61, pix3);
 
 			
 			Point middle = {-0.5, 0.0};
@@ -180,7 +171,7 @@ namespace Example
 			
 			r.LoadOBJModel("./resources/suz.obj");
 
-
+			r.Draw(1);
 			return true;
 		}
 		
@@ -283,7 +274,7 @@ namespace Example
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, tex_h);
 			quadShader.SetUniformTex("tex", 0);
-			r.Draw(1);	
+			//r.Draw(1);	
 
 			m.BindVao();
 			m.BindIbo();

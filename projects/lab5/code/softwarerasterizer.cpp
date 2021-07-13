@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include "objloader.h"
+#include <algorithm>
 
 Renderer::Renderer() : fb_width(0), fb_height(0), frame_buffer(nullptr), depth_buffer(nullptr)
 {
@@ -49,20 +50,21 @@ void Renderer::Draw(unsigned int handle)
 	
 	printf("objects to draw: %ld \n", buffer_handles.size());
 	printf("v size: %ld | i size: %ld \n", object.v_buffer.size(), object.i_buffer.size());
-		
-	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
+	for (size_t i = 0; i+2 < object.i_buffer.size(); i+=3)
 	{
 		auto p1 = object.v_buffer[object.i_buffer[i]].pos;
 		auto p2 = object.v_buffer[object.i_buffer[i+1]].pos;
 		auto p3 = object.v_buffer[object.i_buffer[i+2]].pos;
-		Point point1 = {p1.x, p1.y, 0};
-		Point point2 = {p2.x, p2.y, 0};
-		Point point3 = {p3.x, p3.y, 0};
-		
-		printf("[%ld], x: %f, y: %f \n", i, point1.xpos, point1.ypos);
-		RasterizeTriangle(point1, point2, point3, Pixel{40,50,100, 254});
-
+		vec3 points[3] = {
+			vec3(p1.x, p1.y, 0),
+			vec3(p2.x, p2.y, 0),
+			vec3(p3.x, p3.y, 0)
+		};
+		BarRasterizeTriangle(points, Pixel{rand() % 254, rand() % 254, rand() % 254, 254});
 	}
+	
+
+	
 
 
 	
@@ -215,10 +217,8 @@ void Renderer::RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour)
 		std::swap(p1, p3);
 	if (p2.ypos > p3.ypos)
 		std::swap(p2, p3);
-	printf("rasterize....\n");
 
 	float height = p3.ypos - p1.ypos; //totalt "height" of the triangle to raster
-	printf("rasterize....\n");
 
 
 	for (int y = p1.ypos; y <= p2.ypos; y++)
@@ -240,7 +240,6 @@ void Renderer::RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour)
 
 	}
 
-	printf("rasterize....\n");
 
 
 	for (int y = p2.ypos; y <= p3.ypos; y++)
@@ -294,4 +293,74 @@ bool Renderer::LoadOBJModel(std::string filename)
 	AddBuffer(outVerts, outIndices, 0);
 
 	return true;
+}
+
+void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
+{
+	//setup Bounding box from vertices
+	// int temp_x1, temp_y1, temp_x2, temp_y2, temp_x3, temp_y3;
+	// temp_x1 = (points[0].x * 0.5f + 0.5f) * fb_width;
+	// temp_x2 = (points[1].x * 0.5f + 0.5f) * fb_width;
+	// temp_x3 = (points[2].x * 0.5f + 0.5f) * fb_width;
+	// temp_y1 = (points[0].y* 0.5f + 0.5f) * fb_height;
+	// temp_y2 = (points[1].y* 0.5f + 0.5f) * fb_height;
+	// temp_y3 = (points[2].y* 0.5f + 0.5f) * fb_height;
+
+	
+	// points[1].x = temp_x2;
+	// points[1].y = temp_y2;
+	// points[0].x = temp_x1;
+	// points[0].y = temp_y1;
+	// points[2].y = temp_y3;
+	// points[2].x = temp_x3;
+	for (size_t i = 0; i < 3; i++)
+	{
+		printf("[point %ld]: ", i+1); 
+		printf("point: ");
+		for (size_t j = 0; j < 2; j++)
+		{
+			printf("%f ", points[i][j]);	
+		}
+		printf("\n");
+		
+	}
+	
+	for (size_t i = 0; i < 3; i++)
+	{
+		int temp_x, temp_y;
+		temp_x = (points[i].x * 0.5f + 0.5f) * fb_width;
+		temp_y = (points[i].y * 0.5f + 0.5f) * fb_height;
+		points[i].x = temp_x;
+		points[i].y = temp_y;
+
+	}
+	
+	vec3 boundingboxMIN(fb_width - 1, fb_height - 1);
+	vec3 boundingboxMAX(0, 0);
+	vec3 clamped(fb_width -1, fb_height - 1);
+	for (size_t i = 0; i < 3; i++)
+	{
+		for (size_t j = 0; j < 2; j++)
+		{
+			// TODO: static cast, ugly --> change matlib in future for different vec data-types i.e floats
+			boundingboxMIN[j] = std::max(0, static_cast<int>(std::min(boundingboxMIN[j], points[i][j])));
+			boundingboxMAX[j] = std::min(static_cast<int>(clamped[j]), static_cast<int>(std::max(boundingboxMAX[j], points[i][j])));
+		}
+	}
+	
+	vec3 P(0,0,0);
+	//traverse the bounding box, place pixels inside of bctriangles
+	for (P.x = boundingboxMIN.x; P.x <= boundingboxMAX.x; P.x++)
+	{
+		for (P.y = boundingboxMIN.y; P.y <= boundingboxMAX.y; P.y++)
+		{
+			vec3 screenBarycentric = barycentric(points, P);
+
+			if (screenBarycentric.x < 0 || screenBarycentric.y < 0 || screenBarycentric.z < 0) // if doesnt exist in screen
+				continue;
+			
+			PlacePixel(P.x, P.y, colour);
+		}
+	}
+	
 }
