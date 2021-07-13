@@ -48,19 +48,26 @@ void Renderer::Draw(unsigned int handle)
 	
 	auto object = buffer_handles[handle];
 	
-	printf("objects to draw: %ld \n", buffer_handles.size());
-	printf("v size: %ld | i size: %ld \n", object.v_buffer.size(), object.i_buffer.size());
-	for (size_t i = 0; i+2 < object.i_buffer.size(); i+=3)
+	int asd;
+	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
 	{
-		auto p1 = object.v_buffer[object.i_buffer[i]].pos;
-		auto p2 = object.v_buffer[object.i_buffer[i+1]].pos;
-		auto p3 = object.v_buffer[object.i_buffer[i+2]].pos;
-		vec3 points[3] = {
-			vec3(p1.x, p1.y, 0),
-			vec3(p2.x, p2.y, 0),
-			vec3(p3.x, p3.y, 0)
-		};
-		BarRasterizeTriangle(points, Pixel{rand() % 254, rand() % 254, rand() % 254, 254});
+		vec3 points[3];
+		points[0] = object.v_buffer[object.i_buffer[i]].pos;
+		points[1] = object.v_buffer[object.i_buffer[i+1]].pos;
+		points[2] = object.v_buffer[object.i_buffer[i+2]].pos;
+		// for (size_t j = 0; j < 3; j++)
+		// {
+		// 	int temp_x, temp_y;
+		// 	temp_x = (points[j].x * 0.5f + 0.5f) * fb_width;
+		// 	temp_y = (points[j].y * 0.5f + 0.5f) * fb_height;
+
+
+		// 	points[j].x = temp_x;
+		// 	points[j].y = temp_y;
+		// }
+
+		BarRasterizeTriangle(points, Pixel{rand() % 254, rand() % 254, rand()% 254, 254});
+		asd = i;
 	}
 	
 
@@ -297,44 +304,16 @@ bool Renderer::LoadOBJModel(std::string filename)
 
 void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 {
-	//setup Bounding box from vertices
-	// int temp_x1, temp_y1, temp_x2, temp_y2, temp_x3, temp_y3;
-	// temp_x1 = (points[0].x * 0.5f + 0.5f) * fb_width;
-	// temp_x2 = (points[1].x * 0.5f + 0.5f) * fb_width;
-	// temp_x3 = (points[2].x * 0.5f + 0.5f) * fb_width;
-	// temp_y1 = (points[0].y* 0.5f + 0.5f) * fb_height;
-	// temp_y2 = (points[1].y* 0.5f + 0.5f) * fb_height;
-	// temp_y3 = (points[2].y* 0.5f + 0.5f) * fb_height;
-
-	
-	// points[1].x = temp_x2;
-	// points[1].y = temp_y2;
-	// points[0].x = temp_x1;
-	// points[0].y = temp_y1;
-	// points[2].y = temp_y3;
-	// points[2].x = temp_x3;
-	for (size_t i = 0; i < 3; i++)
-	{
-		printf("[point %ld]: ", i+1); 
-		printf("point: ");
-		for (size_t j = 0; j < 2; j++)
-		{
-			printf("%f ", points[i][j]);	
-		}
-		printf("\n");
-		
-	}
-	
-	for (size_t i = 0; i < 3; i++)
+	for (size_t ii = 0; ii < 3; ii++)
 	{
 		int temp_x, temp_y;
-		temp_x = (points[i].x * 0.5f + 0.5f) * fb_width;
-		temp_y = (points[i].y * 0.5f + 0.5f) * fb_height;
-		points[i].x = temp_x;
-		points[i].y = temp_y;
-
+		temp_x = (points[ii].x * 0.5f + 0.5f) * fb_width;
+		temp_y = (points[ii].y * 0.5f + 0.5f) * fb_height;
+		points[ii].x = temp_x;
+		points[ii].y = temp_y;
 	}
-	
+
+	//setup Bounding box from vertices
 	vec3 boundingboxMIN(fb_width - 1, fb_height - 1);
 	vec3 boundingboxMAX(0, 0);
 	vec3 clamped(fb_width -1, fb_height - 1);
@@ -348,7 +327,7 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 		}
 	}
 	
-	vec3 P(0,0,0);
+	vec3 P;
 	//traverse the bounding box, place pixels inside of bctriangles
 	for (P.x = boundingboxMIN.x; P.x <= boundingboxMAX.x; P.x++)
 	{

@@ -133,45 +133,38 @@ namespace Example
 			this->window->GetSize(w, h);
 			r = Renderer(w, h);
 
-			vec3 points[3];
-			vec3 p1 = {0.5, 0.75};
-			vec3 p2 = {-0.5, 0.75};
-			vec3 p3 = {0, 0.5};
-			points[0] = p1;
-			points[1] = p2;
-			points[2] = p3;
 
 
 
+			
 
 			Pixel pix = {0,254,50,254};
+			Pixel pix1 = {254,0,50,254};
 
 			
-			Point middle = {-0.5, 0.0};
-			Point middle2 = {0.5, 0.0};
+			Point middle = {-1, 0.0};
+			Point middle2 = {1, 0.0};
+			Point middle3 = {0.5, -0.5};
+			Point middle4 = {0.5, 0.5};
+
 			r.DrawLine(middle,middle2, pix);
+			r.DrawLine(middle3,middle4, pix1);
 			
-			r.SaveFB();
 
 			
 			glGenTextures(1, &tex_h);
 			glBindTexture(GL_TEXTURE_2D, tex_h);
-
-			//std::cout<<"width: "<< widht<< "height: " << height << "bpp: "<<bpp<<std::endl;
-
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-
 			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,r.GetFramebuffer());
-
-
 			glBindTexture(GL_TEXTURE_2D, 0);
 			
-			r.LoadOBJModel("./resources/suz.obj");
+			//r.LoadOBJModel("./resources/suz_minus_y.obj");
+			//r.Draw(1);
 
-			r.Draw(1);
+			r.SaveFB();
 			return true;
 		}
 		
@@ -275,6 +268,7 @@ namespace Example
 			glBindTexture(GL_TEXTURE_2D, tex_h);
 			quadShader.SetUniformTex("tex", 0);
 			//r.Draw(1);	
+			r.Draw(1);
 
 			m.BindVao();
 			m.BindIbo();
