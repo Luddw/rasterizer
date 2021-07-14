@@ -144,6 +144,7 @@ void Renderer::SetModelViewProjectionMatrix(const Matrix4D &mvp)
 
 void Renderer::SaveFB()
 {
+	stbi_flip_vertically_on_write(true);
 	stbi_write_png("gamer.png", fb_width, fb_height, 4, frame_buffer, fb_width*4);
 	printf("writing image: %s \n", "gamer.png");
 }
@@ -307,8 +308,8 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 	for (size_t ii = 0; ii < 3; ii++)
 	{
 		int temp_x, temp_y;
-		temp_x = (points[ii].x * 0.5f + 0.5f) * fb_width;
-		temp_y = (points[ii].y * 0.5f + 0.5f) * fb_height;
+		temp_x = (points[ii].x+ 0.5f) * fb_width/2.0f;
+		temp_y = (points[ii].y+ 0.5f) * fb_height/2.0f;
 		points[ii].x = temp_x;
 		points[ii].y = temp_y;
 	}

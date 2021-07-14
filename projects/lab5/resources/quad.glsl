@@ -22,4 +22,5 @@ void main()
     color = texture(tex, UV).rgb;
     //color = vec3(0,0,1);
     //color = vec3(UV.x, UV.y,0);
+    
 }

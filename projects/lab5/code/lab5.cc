@@ -142,14 +142,15 @@ namespace Example
 			Pixel pix1 = {254,0,50,254};
 
 			
-			Point middle = {-1, 0.0};
+			Point middle = {-1, -0.1};
 			Point middle2 = {1, 0.0};
-			Point middle3 = {0.5, -0.5};
-			Point middle4 = {0.5, 0.5};
+			Point yline = {-1, 0.0};
+			Point yline2 = {1, 0.0};
 
-			r.DrawLine(middle,middle2, pix);
-			r.DrawLine(middle3,middle4, pix1);
+			r.DrawLine(middle,middle2, pix1);
+			r.DrawLine(yline, yline2, pix);
 			
+			r.PlacePixel(1,1,pix1);
 
 			
 			glGenTextures(1, &tex_h);
@@ -161,8 +162,8 @@ namespace Example
 			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,r.GetFramebuffer());
 			glBindTexture(GL_TEXTURE_2D, 0);
 			
-			//r.LoadOBJModel("./resources/suz_minus_y.obj");
-			//r.Draw(1);
+			r.LoadOBJModel("./resources/suz.obj");
+			r.Draw(1);
 
 			r.SaveFB();
 			return true;
@@ -245,10 +246,10 @@ namespace Example
 
 	};
 
-		std::vector<Vertex> quadV = { Vertex(vec3(1.0f, 1.0f, 0.0f), vec3(1.0f,0.0f,0), vec3()), // top r
-									  Vertex(vec3(1.0f, -1.0f,  0.0f), vec3(1.0f,1.0f,0), vec3()),  // botom r
-					  				  Vertex(vec3(-1.0f, -1.0f, 0.0f), vec3(0.0f,1.0f,0), vec3()),// bot l
-									  Vertex(vec3(-1.0f, 1.0f, 0.0f), vec3(0.0f,0.0f,0), vec3()) };//top l
+		std::vector<Vertex> quadV = { Vertex(vec3(1.0f, 1.0f, 0.0f), vec3(1.0f,1.0f,0), vec3()), // top r
+									  Vertex(vec3(1.0f, -1.0f,  0.0f), vec3(1.0f,0.0f,0), vec3()),  // botom r
+					  				  Vertex(vec3(-1.0f, -1.0f, 0.0f), vec3(0.0f,0.0f,0), vec3()),// bot l
+									  Vertex(vec3(-1.0f, 1.0f, 0.0f), vec3(0.0f,1.0f,0), vec3()) };//top l
 
 		std::vector<GLuint> quadI = { 0,1,3,
 									  1,2,3};
