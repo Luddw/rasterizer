@@ -88,7 +88,7 @@ void Renderer::AddIndexBuffer(unsigned int * buffer)
 	
 }
 
-const unsigned int Renderer::AddBuffer(std::vector<Vertex> vbuff, std::vector<unsigned int> ibuff, unsigned int faces)
+const unsigned int Renderer::AddBuffer(std::vector<Vertex> &vbuff, std::vector<unsigned int> &ibuff, unsigned int faces)
 {
 	unsigned int t_handle = 1;
 	buffer_handles.emplace(t_handle, BufferObject(vbuff, ibuff));
@@ -290,16 +290,19 @@ bool Renderer::LoadOBJModel(std::string filename)
 	if (loadout != true)
 		return false;
 
-	outIndices = loader.LoadedIndices;
-	auto v = loader.LoadedMeshes;
+	outIndices = loader.LoadedMeshes[0].Indices;
+	
 	for (size_t i = 0; i < loader.LoadedVertices.size(); i++)
 	{
+		loader.LoadedVertices[i].pos *= 0.5f;
+		loader.LoadedVertices[i].pos.z += 1.f;
+
 		outVerts.emplace_back(loader.LoadedVertices[i]);
 	}
 	
-	printf("vsize: %ld isize: %ld \n", outVerts.size(), outIndices.size());
 	AddBuffer(outVerts, outIndices, 0);
 
+	
 	return true;
 }
 
@@ -338,8 +341,19 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 
 			if (screenBarycentric.x < 0 || screenBarycentric.y < 0 || screenBarycentric.z < 0) // if doesnt exist in screen
 				continue;
+
+			P.z = 0;
+			for (size_t i=0; i < 3; i++)	//multiply each points Z-value with the bc-coord
+			{
+				P.z += points[i].z * screenBarycentric[i];
+			}
+
+			if (depth_buffer[int(P.x + P.y * fb_width)] < P.z) // check depth, discard otherwise
+			{
+				depth_buffer[int(P.x + P.y * fb_width)] =  P.z;
+				PlacePixel(P.x, P.y, Pixel{128 * P.z,128 * P.z,128 * P.z, 254});
+			}
 			
-			PlacePixel(P.x, P.y, colour);
 		}
 	}
 	

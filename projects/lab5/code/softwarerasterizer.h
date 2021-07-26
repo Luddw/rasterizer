@@ -98,7 +98,7 @@ public:
 	~Renderer();
 	void AddVertexBuffer(Vertex* buffer);
 	void AddIndexBuffer(unsigned int* buffer);
-	const unsigned int AddBuffer(std::vector<Vertex> vbuff, std::vector<unsigned int> ibuff, unsigned int faces);
+	const unsigned int AddBuffer(std::vector<Vertex> &vbuff, std::vector<unsigned int> &ibuff, unsigned int faces);
 	void SetupFrameBuffer(int width, int height);
 	Pixel * GetFramebuffer();
 	const int GetFramebufferSize();

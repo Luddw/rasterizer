@@ -61,6 +61,7 @@ namespace Example
 				case GLFW_KEY_A: {mainnode.GetTransform()->Move(0.1f, 0, 0); break; }
 				case GLFW_KEY_S: {mainnode.GetTransform()->Move(0, 0, 0.1f); break; }
 				case GLFW_KEY_W: {mainnode.GetTransform()->Move(0, 0, -0.1f); break; }								 
+				case GLFW_KEY_ESCAPE: {r.SaveFB(); break; }								 
 				case GLFW_KEY_M: {glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); break; } //wireframe
 				case GLFW_KEY_N: {glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); break; }
 				case GLFW_KEY_H: {; break; }
@@ -147,13 +148,12 @@ namespace Example
 			Point yline = {-1, 0.0};
 			Point yline2 = {1, 0.0};
 
-			r.DrawLine(middle,middle2, pix1);
-			r.DrawLine(yline, yline2, pix);
-			
-			r.PlacePixel(1,1,pix1);
 
-			
+
 			glGenTextures(1, &tex_h);
+						
+			r.LoadOBJModel("./resources/suz.obj");
+			r.Draw(1);
 			glBindTexture(GL_TEXTURE_2D, tex_h);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -161,11 +161,8 @@ namespace Example
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,r.GetFramebuffer());
 			glBindTexture(GL_TEXTURE_2D, 0);
-			
-			r.LoadOBJModel("./resources/suz.obj");
-			r.Draw(1);
 
-			r.SaveFB();
+
 			return true;
 		}
 		
@@ -255,12 +252,12 @@ namespace Example
 									  1,2,3};
 
 		ShaderResource quadShader("./resources/quad.glsl");
-		
+
 		MeshResource m(quadV, quadI);
 		m.SetupMeshResource();
 		//r.LoadOBJModel("./resources/suz.obj");
 		//r.AddBuffer(qube,indices, 0);
-		
+		r.SaveFB();
 		while (this->window->IsOpen())
 		{
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -268,16 +265,12 @@ namespace Example
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, tex_h);
 			quadShader.SetUniformTex("tex", 0);
-			//r.Draw(1);	
-			r.Draw(1);
-
 			m.BindVao();
 			m.BindIbo();
 //			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,r.GetFramebuffer());
 			//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, r.GetWidth(), r.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, r.GetFramebuffer());
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 			glBindTexture(GL_TEXTURE_2D, 0);
-
 			this->window->Update();
 			this->window->SwapBuffers();
 		}
