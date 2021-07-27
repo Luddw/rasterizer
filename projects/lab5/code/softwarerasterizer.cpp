@@ -46,7 +46,7 @@ void Renderer::DrawModel(MeshResource mesh)
 void Renderer::Draw(unsigned int handle)
 {
 	
-	auto object = buffer_handles[handle];
+	const BufferObject object = buffer_handles[handle];
 	
 	int asd;
 	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
@@ -67,7 +67,6 @@ void Renderer::Draw(unsigned int handle)
 		// }
 
 		BarRasterizeTriangle(points, Pixel{rand() % 254, rand() % 254, rand()% 254, 254});
-		asd = i;
 	}
 	
 
@@ -308,11 +307,12 @@ bool Renderer::LoadOBJModel(std::string filename)
 
 void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 {
+	//convert from opengl-space to fb-space , half-pixel offset
 	for (size_t ii = 0; ii < 3; ii++)
 	{
 		int temp_x, temp_y;
-		temp_x = (points[ii].x+ 0.5f) * fb_width/2.0f;
-		temp_y = (points[ii].y+ 0.5f) * fb_height/2.0f;
+		temp_x = (points[ii].x + 0.5f) * fb_width / 2.0f;
+		temp_y = (points[ii].y + 0.5f) * fb_height / 2.0f;
 		points[ii].x = temp_x;
 		points[ii].y = temp_y;
 	}
@@ -325,7 +325,7 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 	{
 		for (size_t j = 0; j < 2; j++)
 		{
-			// TODO: static cast, ugly --> change matlib in future for different vec data-types i.e floats
+			// TODO: static cast, ugly --> change matlib in future for different vec data-types i.e float, int
 			boundingboxMIN[j] = std::max(0, static_cast<int>(std::min(boundingboxMIN[j], points[i][j])));
 			boundingboxMAX[j] = std::min(static_cast<int>(clamped[j]), static_cast<int>(std::max(boundingboxMAX[j], points[i][j])));
 		}
@@ -333,13 +333,14 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 	
 	vec3 P;
 	//traverse the bounding box, place pixels inside of bctriangles
+	// "for each pixel ..."	
 	for (P.x = boundingboxMIN.x; P.x <= boundingboxMAX.x; P.x++)
 	{
 		for (P.y = boundingboxMIN.y; P.y <= boundingboxMAX.y; P.y++)
 		{
 			vec3 screenBarycentric = barycentric(points, P);
 
-			if (screenBarycentric.x < 0 || screenBarycentric.y < 0 || screenBarycentric.z < 0) // if doesnt exist in screen
+			if (screenBarycentric.x < 0 || screenBarycentric.y < 0 || screenBarycentric.z < 0) // if clip
 				continue;
 
 			P.z = 0;
@@ -351,7 +352,7 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 			if (depth_buffer[int(P.x + P.y * fb_width)] < P.z) // check depth, discard otherwise
 			{
 				depth_buffer[int(P.x + P.y * fb_width)] =  P.z;
-				PlacePixel(P.x, P.y, Pixel{128 * P.z,128 * P.z,128 * P.z, 254});
+				PlacePixel(P.x, P.y, colour);
 			}
 			
 		}

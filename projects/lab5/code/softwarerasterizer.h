@@ -90,6 +90,9 @@ struct Line
 	};
 };
 
+
+
+
 class Renderer
 {
 public:
@@ -121,6 +124,7 @@ public:
 private:
 	//GLuint vbo{}, ibo{};
 	//GLuint fbo;
+	Vertex VertexShaderFunction(Vertex &inVert);
 	std::map<unsigned int, BufferObject> buffer_handles;
 	int fb_height;
 	int fb_width;
@@ -128,8 +132,18 @@ private:
 	float* depth_buffer;
 	std::function<Vertex(Vertex)> vertex_shader;
 	std::function<void(Vertex)> frag_shader;
-	Matrix4D model_view_proj;
+	mat4 model_view_proj;
 	Texture tex;
 };
 
 
+Vertex Renderer::VertexShaderFunction(Vertex &inVert)
+{
+	vec4 pos = vec4(inVert.pos.x, inVert.pos.y, inVert.pos.z, 1.0);
+
+	pos = model_view_proj * pos;
+
+	inVert.pos = vec3(pos.x, pos.y, pos.z);
+
+	return inVert;
+}
