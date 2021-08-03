@@ -9,6 +9,10 @@
 #include "objloader.h"
 #include <algorithm>
 
+
+
+
+
 Renderer::Renderer() : fb_width(0), fb_height(0), frame_buffer(nullptr), depth_buffer(nullptr)
 {
 
@@ -19,6 +23,11 @@ Renderer::Renderer(const int width, const int height)
 	fb_width = width;
 	fb_height = height;
 	SetupFrameBuffer(width, height);
+	projMat = perspectiveprojection(1.5705f, width/height, 0.1f, 100.0f);
+	viewMat = lookat(vec3(0,0,1.0f), vec3(0,0,0), vec3(0,1,0));
+	model_view_proj = GetMVP();
+	auto lel = VertShaderFunc;
+	
 }
 
 Renderer::~Renderer()
@@ -47,10 +56,11 @@ void Renderer::Draw(unsigned int handle)
 {
 	
 	const BufferObject object = buffer_handles[handle];
-	
-	int asd;
+	VertexShader(object.v_buffer, vertex_shader);
 	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
 	{
+
+		
 		vec3 points[3];
 		points[0] = object.v_buffer[object.i_buffer[i]].pos;
 		points[1] = object.v_buffer[object.i_buffer[i+1]].pos;
@@ -61,7 +71,9 @@ void Renderer::Draw(unsigned int handle)
 		// 	temp_x = (points[j].x * 0.5f + 0.5f) * fb_width;
 		// 	temp_y = (points[j].y * 0.5f + 0.5f) * fb_height;
 
-
+		points[0].x += 0.4f;
+		points[1].x += 0.4f;
+		points[2].x += 0.4f;
 		// 	points[j].x = temp_x;
 		// 	points[j].y = temp_y;
 		// }
@@ -116,7 +128,7 @@ void Renderer::PlacePixel(unsigned int x, unsigned int y, Pixel pix)
 		this->frame_buffer[x + (y * fb_width)] = pix;
 }
 
-void Renderer::SetVertextShader(std::function<Vertex(Vertex)> vertex_lambda)
+void Renderer::SetVertextShader(std::function<Vertex(Vertex)> &vertex_lambda)
 {
 	this->vertex_shader = vertex_lambda;
 }
@@ -136,7 +148,7 @@ int Renderer::GetWidth()
 	return fb_width;
 }
 
-void Renderer::SetModelViewProjectionMatrix(const Matrix4D &mvp)
+void Renderer::SetModelViewProjectionMatrix(const mat4 &mvp)
 {
 	model_view_proj = mvp;
 }
@@ -266,17 +278,7 @@ void Renderer::RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour)
 		
 		
 
-	}
-	
-
-	// DrawLine(p1, p2, Pixel{0,254,0,254});
-	// DrawLine(p2, p3, Pixel{0,254,0,254});
-	// DrawLine(p3, p1, Pixel{254,0,0,254});
-
-
-	printf("triangle: p1:%f %f p2:%f %f p3:%f %f colr:%d %d %d \n",p1.xpos,p1.ypos,p2.xpos,p2.ypos,p3.xpos,p3.ypos,colour.r,colour.g,colour.b);
-	
-
+	}	
 }
 
 bool Renderer::LoadOBJModel(std::string filename)
@@ -308,8 +310,15 @@ bool Renderer::LoadOBJModel(std::string filename)
 void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 {
 	//convert from opengl-space to fb-space , half-pixel offset
+
+	for (size_t i = 0; i < 3; i++)
+	{
+		
+	}
+	
 	for (size_t ii = 0; ii < 3; ii++)
 	{
+		
 		int temp_x, temp_y;
 		temp_x = (points[ii].x + 0.5f) * fb_width / 2.0f;
 		temp_y = (points[ii].y + 0.5f) * fb_height / 2.0f;
@@ -318,6 +327,7 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 	}
 
 	//setup Bounding box from vertices
+
 	vec3 boundingboxMIN(fb_width - 1, fb_height - 1);
 	vec3 boundingboxMAX(0, 0);
 	vec3 clamped(fb_width -1, fb_height - 1);
@@ -356,6 +366,32 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 			}
 			
 		}
+	}
+	
+}
+
+
+mat4 Renderer::GetMVP()
+{
+	return mat4(vec4(1,0,0,0),
+				vec4(0,1,0,0),
+				vec4(0,0,1,0),
+				vec4(0,0,0,1)) * viewMat * projMat ;
+}
+Vertex Renderer::VertShaderFunc(Vertex inVert)
+{
+	vec4 pos = vec4(inVert.pos.x, inVert.pos.y, inVert.pos.z, 1.0);
+
+	pos = model_view_proj * pos;
+	pos = rotationy(0.4f) * pos;
+	inVert.pos = vec3(pos.x, pos.y, pos.z);
+}
+
+void Renderer::VertexShader(std::vector<Vertex> inVerts, std::function<Vertex(Vertex)> &vertexShaderFunction)
+{
+	for (auto vert : inVerts)
+	{
+		vertexShaderFunction(vert);
 	}
 	
 }

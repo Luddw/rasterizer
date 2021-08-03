@@ -106,7 +106,7 @@ public:
 	Pixel * GetFramebuffer();
 	const int GetFramebufferSize();
 	void PlacePixel(unsigned int x, unsigned int y, Pixel pix);
-	void SetVertextShader(std::function<Vertex(Vertex)> vertex_lambda);
+	void SetVertextShader(std::function<Vertex(Vertex)> &vertex_lambda);
 	void SetFragmentShader(std::function<void(Vertex)> frag_lambda);
 	int GetHeight();
 	int GetWidth();
@@ -114,36 +114,32 @@ public:
 	void RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour);
 	void BarRasterizeTriangle(vec3* points, Pixel colour);
 	void PlaceTriangle(Point p1, Point p2, Point p3);
-	void SetModelViewProjectionMatrix(const Matrix4D &mvp);
+	void SetModelViewProjectionMatrix(const mat4 &mvp);
 	void DrawLine(Point p1, Point p2 , Pixel colour);
 	void SetTexture(const Texture &tex);
 	void SaveFB();
 	void BresenhamLine(int x1, int y1, int x2, int y2);
 	void DrawModel(MeshResource mesh);
 	bool LoadOBJModel(std::string filename);
+	mat4 GetMVP();
+
+	void Rotate(float angle);
+	void VertexShader(std::vector<Vertex> inVerts, std::function<Vertex(Vertex)> &vertexShaderFunction);
 private:
 	//GLuint vbo{}, ibo{};
 	//GLuint fbo;
-	Vertex VertexShaderFunction(Vertex &inVert);
+	Vertex VertShaderFunc(Vertex inVert);
 	std::map<unsigned int, BufferObject> buffer_handles;
 	int fb_height;
 	int fb_width;
 	Pixel * frame_buffer;
 	float* depth_buffer;
-	std::function<Vertex(Vertex)> vertex_shader;
+	std::function<Vertex(Vertex)> vertex_shader = [](Vertex inVerts) {printf("idwqid"); };
 	std::function<void(Vertex)> frag_shader;
 	mat4 model_view_proj;
 	Texture tex;
+	mat4 viewMat;
+	mat4 projMat;
 };
 
 
-Vertex Renderer::VertexShaderFunction(Vertex &inVert)
-{
-	vec4 pos = vec4(inVert.pos.x, inVert.pos.y, inVert.pos.z, 1.0);
-
-	pos = model_view_proj * pos;
-
-	inVert.pos = vec3(pos.x, pos.y, pos.z);
-
-	return inVert;
-}
