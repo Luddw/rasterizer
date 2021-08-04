@@ -26,8 +26,7 @@ Renderer::Renderer(const int width, const int height)
 	projMat = perspectiveprojection(1.5705f, width/height, 0.1f, 100.0f);
 	viewMat = lookat(vec3(0,0,1.0f), vec3(0,0,0), vec3(0,1,0));
 	model_view_proj = GetMVP();
-	auto lel = VertShaderFunc;
-	
+	SetVertextShader()	
 }
 
 Renderer::~Renderer()
@@ -56,7 +55,6 @@ void Renderer::Draw(unsigned int handle)
 {
 	
 	const BufferObject object = buffer_handles[handle];
-	VertexShader(object.v_buffer, vertex_shader);
 	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
 	{
 
@@ -153,6 +151,7 @@ void Renderer::SetModelViewProjectionMatrix(const mat4 &mvp)
 	model_view_proj = mvp;
 }
 
+//save framebuffer as png in running directory
 void Renderer::SaveFB()
 {
 	stbi_flip_vertically_on_write(true);
@@ -165,6 +164,7 @@ void Renderer::SetTexture(const Texture &tex)
 	this->tex = tex;
 }
 
+//bresenham line function 
 void Renderer::DrawLine(Point p1, Point p2 , Pixel colour)
 {
 	bool isSteep = false;
@@ -226,6 +226,7 @@ void Renderer::PlaceTriangle(Point p1, Point p2, Point p3)
 	DrawLine(p3.xpos, p3.ypos, p1.xpos, p1.ypos);*/
 }
 
+//scanline raster
 void Renderer::RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour)
 {
 	printf("rasterize....\n");
@@ -306,7 +307,7 @@ bool Renderer::LoadOBJModel(std::string filename)
 	
 	return true;
 }
-
+//bounding box barycoord raster
 void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 {
 	//convert from opengl-space to fb-space , half-pixel offset
@@ -378,6 +379,7 @@ mat4 Renderer::GetMVP()
 				vec4(0,0,1,0),
 				vec4(0,0,0,1)) * viewMat * projMat ;
 }
+
 Vertex Renderer::VertShaderFunc(Vertex inVert)
 {
 	vec4 pos = vec4(inVert.pos.x, inVert.pos.y, inVert.pos.z, 1.0);
@@ -385,13 +387,5 @@ Vertex Renderer::VertShaderFunc(Vertex inVert)
 	pos = model_view_proj * pos;
 	pos = rotationy(0.4f) * pos;
 	inVert.pos = vec3(pos.x, pos.y, pos.z);
-}
 
-void Renderer::VertexShader(std::vector<Vertex> inVerts, std::function<Vertex(Vertex)> &vertexShaderFunction)
-{
-	for (auto vert : inVerts)
-	{
-		vertexShaderFunction(vert);
-	}
-	
 }

@@ -122,9 +122,7 @@ public:
 	void DrawModel(MeshResource mesh);
 	bool LoadOBJModel(std::string filename);
 	mat4 GetMVP();
-
 	void Rotate(float angle);
-	void VertexShader(std::vector<Vertex> inVerts, std::function<Vertex(Vertex)> &vertexShaderFunction);
 private:
 	//GLuint vbo{}, ibo{};
 	//GLuint fbo;
@@ -134,7 +132,7 @@ private:
 	int fb_width;
 	Pixel * frame_buffer;
 	float* depth_buffer;
-	std::function<Vertex(Vertex)> vertex_shader = [](Vertex inVerts) {printf("idwqid"); };
+	std::function<Vertex(Vertex)> vertex_shader; 
 	std::function<void(Vertex)> frag_shader;
 	mat4 model_view_proj;
 	Texture tex;

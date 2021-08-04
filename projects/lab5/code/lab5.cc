@@ -52,7 +52,7 @@ namespace Example
 		{
 			this->keyEvent(key, action, mod);
 			std::cout <<"Key: "<< key << " action: "<<action << std::endl;
-			if (action == 1)
+			if (action == 1)	
 			{
 				
 				switch (key)
