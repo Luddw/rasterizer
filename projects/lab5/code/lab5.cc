@@ -40,6 +40,7 @@ namespace Example
 	//------------------------------------------------------------------------------
 	/**
 	*/
+
 	bool
 	Lab5::Open()
 	{
@@ -121,13 +122,12 @@ namespace Example
 		
 
 
-
+		
 		if (this->window->Open())
 		{
 			glClearColor(1.0f, 0.5f, 1.0f, 1.0f);
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LESS);
-			Pixel p(0xFF,0,0,0xFF);
 
 			int w, h;
 			
@@ -135,18 +135,6 @@ namespace Example
 			r = Renderer(w, h);
 
 
-
-
-			
-
-			Pixel pix = {0,254,50,254};
-			Pixel pix1 = {254,0,50,254};
-
-			
-			Point middle = {-1, -0.1};
-			Point middle2 = {1, 0.0};
-			Point yline = {-1, 0.0};
-			Point yline2 = {1, 0.0};
 
 
 

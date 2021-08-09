@@ -91,7 +91,16 @@ struct Line
 };
 
 
-
+/*
+Vertex VertexShaderFunc(Vertex &inVert, mat4 mvp)
+{
+	const auto &inPos = inVert.pos;
+	vec4 pos(inPos.x, inPos.y, inPos.z, 1.0f);
+	pos =  mvp * pos;
+	inVert.pos = vec3(pos.x, pos.y, pos.z);
+	return inVert;
+}
+*/
 
 class Renderer
 {
@@ -106,7 +115,7 @@ public:
 	Pixel * GetFramebuffer();
 	const int GetFramebufferSize();
 	void PlacePixel(unsigned int x, unsigned int y, Pixel pix);
-	void SetVertextShader(std::function<Vertex(Vertex)> &vertex_lambda);
+	void SetVertextShader(std::function<Vertex(Vertex)> vertex_lambda);
 	void SetFragmentShader(std::function<void(Vertex)> frag_lambda);
 	int GetHeight();
 	int GetWidth();
@@ -136,7 +145,7 @@ private:
 	std::function<void(Vertex)> frag_shader;
 	mat4 model_view_proj;
 	Texture tex;
-	mat4 viewMat;
+	static mat4 viewMat;
 	mat4 projMat;
 };
 

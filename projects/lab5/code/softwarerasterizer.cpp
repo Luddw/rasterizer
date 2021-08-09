@@ -26,7 +26,6 @@ Renderer::Renderer(const int width, const int height)
 	projMat = perspectiveprojection(1.5705f, width/height, 0.1f, 100.0f);
 	viewMat = lookat(vec3(0,0,1.0f), vec3(0,0,0), vec3(0,1,0));
 	model_view_proj = GetMVP();
-	SetVertextShader()	
 }
 
 Renderer::~Renderer()
@@ -126,7 +125,7 @@ void Renderer::PlacePixel(unsigned int x, unsigned int y, Pixel pix)
 		this->frame_buffer[x + (y * fb_width)] = pix;
 }
 
-void Renderer::SetVertextShader(std::function<Vertex(Vertex)> &vertex_lambda)
+void Renderer::SetVertextShader(std::function<Vertex(Vertex)> vertex_lambda)
 {
 	this->vertex_shader = vertex_lambda;
 }
