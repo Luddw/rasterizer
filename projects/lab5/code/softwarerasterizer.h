@@ -9,13 +9,8 @@
 #include <functional>
 #include "texture.h"
 #include "modelraster.h"
-//struct Vertex
-//{
-//	Vector4D pos;
-//	Vector4D color;
-//	Vector4D normal;
-//	Vertex(Vector4D p, Vector4D clr, Vector4D norm);
-//};
+#include "shaderresource.h"
+
 
 struct BufferObject
 {
@@ -91,16 +86,13 @@ struct Line
 };
 
 
-/*
-Vertex VertexShaderFunc(Vertex &inVert, mat4 mvp)
+
+struct VertexOut
 {
-	const auto &inPos = inVert.pos;
-	vec4 pos(inPos.x, inPos.y, inPos.z, 1.0f);
-	pos =  mvp * pos;
-	inVert.pos = vec3(pos.x, pos.y, pos.z);
-	return inVert;
-}
-*/
+	vec3 pos;
+	vec3 uv;
+};
+
 
 class Renderer
 {
@@ -115,37 +107,29 @@ public:
 	Pixel * GetFramebuffer();
 	const int GetFramebufferSize();
 	void PlacePixel(unsigned int x, unsigned int y, Pixel pix);
-	void SetVertextShader(std::function<Vertex(Vertex)> vertex_lambda);
-	void SetFragmentShader(std::function<void(Vertex)> frag_lambda);
+	void SetVertextShader(std::function<void(Vertex, void*)> vertex_lambda);
+	void SetFragmentShader(std::function<void(Vertex, void*)> frag_lambda);
 	int GetHeight();
 	int GetWidth();
 	void Draw(unsigned int handle);
 	void RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour);
 	void BarRasterizeTriangle(vec3* points, Pixel colour);
-	void PlaceTriangle(Point p1, Point p2, Point p3);
 	void SetModelViewProjectionMatrix(const mat4 &mvp);
 	void DrawLine(Point p1, Point p2 , Pixel colour);
 	void SetTexture(const Texture &tex);
 	void SaveFB();
-	void BresenhamLine(int x1, int y1, int x2, int y2);
-	void DrawModel(MeshResource mesh);
 	bool LoadOBJModel(std::string filename);
 	mat4 GetMVP();
-	void Rotate(float angle);
 private:
-	//GLuint vbo{}, ibo{};
-	//GLuint fbo;
-	Vertex VertShaderFunc(Vertex inVert);
 	std::map<unsigned int, BufferObject> buffer_handles;
 	int fb_height;
 	int fb_width;
 	Pixel * frame_buffer;
 	float* depth_buffer;
-	std::function<Vertex(Vertex)> vertex_shader; 
-	std::function<void(Vertex)> frag_shader;
+	std::function<void(Vertex, void*)> vertex_shader; 
+	std::function<void(Vertex, void*)> frag_shader;
 	mat4 model_view_proj;
-	Texture tex;
-	static mat4 viewMat;
+	mat4 viewMat;
 	mat4 projMat;
 };
 

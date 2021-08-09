@@ -38,3 +38,4 @@ void PointLight::Rotate(float value)
 	pos = Matrix4D::RotY_axis(value) * pos;
 	
 }
+

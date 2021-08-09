@@ -21,5 +21,5 @@ public:
 	int GetWidht() const { return widht;}
 	int GetHeight() const { return height;}
 	int Getbpp() const { return bpp;}
-
+	void Update(unsigned width, unsigned height,void* data);
 };

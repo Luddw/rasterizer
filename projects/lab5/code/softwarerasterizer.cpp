@@ -8,7 +8,7 @@
 #include <sstream>
 #include "objloader.h"
 #include <algorithm>
-
+#include <time.h>
 
 
 
@@ -23,7 +23,7 @@ Renderer::Renderer(const int width, const int height)
 	fb_width = width;
 	fb_height = height;
 	SetupFrameBuffer(width, height);
-	projMat = perspectiveprojection(1.5705f, width/height, 0.1f, 100.0f);
+	projMat = perspectiveprojection(1.5705f, width/height, 0.0f, 1.0f);
 	viewMat = lookat(vec3(0,0,1.0f), vec3(0,0,0), vec3(0,1,0));
 	model_view_proj = GetMVP();
 }
@@ -33,48 +33,28 @@ Renderer::~Renderer()
 
 }
 
-void Renderer::DrawModel(MeshResource mesh)
-{
-
-	
-	// for (size_t i = 0; i < model.nfaces(); i++)
-	// {
-	// 	std::vector<int> face 
-	// 	Point coords[3];
-	// 	for (size_t j = 0; i < j; j++)
-	// 	{
-	// 		vec3 world_coord = model.vert(face)
-	// 	}
-		
-	// }
-	
-}
 
 void Renderer::Draw(unsigned int handle)
 {
 	
 	const BufferObject object = buffer_handles[handle];
+	SetVertextShader([&](Vertex v, void* data){
+		VertexOut
+	});
 	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
 	{
-
-		
 		vec3 points[3];
+		Vertex verts[3];
+
 		points[0] = object.v_buffer[object.i_buffer[i]].pos;
 		points[1] = object.v_buffer[object.i_buffer[i+1]].pos;
 		points[2] = object.v_buffer[object.i_buffer[i+2]].pos;
-		// for (size_t j = 0; j < 3; j++)
-		// {
-		// 	int temp_x, temp_y;
-		// 	temp_x = (points[j].x * 0.5f + 0.5f) * fb_width;
-		// 	temp_y = (points[j].y * 0.5f + 0.5f) * fb_height;
 
-		points[0].x += 0.4f;
-		points[1].x += 0.4f;
-		points[2].x += 0.4f;
-		// 	points[j].x = temp_x;
-		// 	points[j].y = temp_y;
-		// }
+		verts[0] = object.v_buffer[object.i_buffer[i]];
+		verts[1] = object.v_buffer[object.i_buffer[i+1]];
+		verts[2] = object.v_buffer[object.i_buffer[i+2]];
 
+		vertex_shader(verts[0], verts);
 		BarRasterizeTriangle(points, Pixel{rand() % 254, rand() % 254, rand()% 254, 254});
 	}
 	
@@ -125,12 +105,12 @@ void Renderer::PlacePixel(unsigned int x, unsigned int y, Pixel pix)
 		this->frame_buffer[x + (y * fb_width)] = pix;
 }
 
-void Renderer::SetVertextShader(std::function<Vertex(Vertex)> vertex_lambda)
+void Renderer::SetVertextShader(std::function<void(Vertex, void*)> vertex_lambda)
 {
 	this->vertex_shader = vertex_lambda;
 }
 
-void Renderer::SetFragmentShader(std::function<void(Vertex)> frag_lambda)
+void Renderer::SetFragmentShader(std::function<void(Vertex, void*)> frag_lambda)
 {
 	this->frag_shader = frag_lambda;
 }
@@ -158,10 +138,7 @@ void Renderer::SaveFB()
 	printf("writing image: %s \n", "gamer.png");
 }
 
-void Renderer::SetTexture(const Texture &tex)
-{
-	this->tex = tex;
-}
+
 
 //bresenham line function 
 void Renderer::DrawLine(Point p1, Point p2 , Pixel colour)
@@ -218,12 +195,6 @@ void Renderer::DrawLine(Point p1, Point p2 , Pixel colour)
 
 }
 
-void Renderer::PlaceTriangle(Point p1, Point p2, Point p3)
-{
-	/*DrawLine(p1.xpos, p1.ypos, p2.xpos, p2.ypos);
-	DrawLine(p2.xpos, p2.ypos, p3.xpos, p3.ypos);
-	DrawLine(p3.xpos, p3.ypos, p1.xpos, p1.ypos);*/
-}
 
 //scanline raster
 void Renderer::RasterizeTriangle(Point p1, Point p2, Point p3, Pixel colour)
@@ -328,8 +299,8 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 
 	//setup Bounding box from vertices
 
-	vec3 boundingboxMIN(fb_width - 1, fb_height - 1);
-	vec3 boundingboxMAX(0, 0);
+	vec3 boundingboxMIN(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+	vec3 boundingboxMAX(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
 	vec3 clamped(fb_width -1, fb_height - 1);
 	for (size_t i = 0; i < 3; i++)
 	{
@@ -379,12 +350,4 @@ mat4 Renderer::GetMVP()
 				vec4(0,0,0,1)) * viewMat * projMat ;
 }
 
-Vertex Renderer::VertShaderFunc(Vertex inVert)
-{
-	vec4 pos = vec4(inVert.pos.x, inVert.pos.y, inVert.pos.z, 1.0);
 
-	pos = model_view_proj * pos;
-	pos = rotationy(0.4f) * pos;
-	inVert.pos = vec3(pos.x, pos.y, pos.z);
-
-}

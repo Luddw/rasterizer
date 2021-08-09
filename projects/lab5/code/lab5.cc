@@ -100,19 +100,15 @@ namespace Example
 				//std::cout << xpos << "  :  " << ypos << std::endl;
 				if (leftButtonPressed && dx < xpos)
 				{
-					mainnode.GetTransform()->RotY(0.01f);
 				}
 				else if (leftButtonPressed && dx > xpos)
 				{
-					mainnode.GetTransform()->RotY(-0.01f);
 				}
 				else if (leftButtonPressed && dy < ypos)
 				{
-					mainnode.GetTransform()->RotX(0.01f);
 				}
 				if (leftButtonPressed && dy > ypos)
 				{
-					mainnode.GetTransform()->RotX(-0.01f);
 				}
 				dx = xpos;
 				dy = ypos;
@@ -161,9 +157,51 @@ namespace Example
 	/**
 	*/
 
+	struct VertexOutput
+	{
+		Vector4D position;
+	};
+
+	struct VertexPBROutput
+	{
+		Vector4D position;
+		int a;
+	};
+
+class Rasterizer
+{
+	std::function<void(Vertex, void*)> vertex;
+	std::function<void(Vertex, void*)> fragment;
+
+	void Render(){
+	vertex = [](Vertex v, void* data){
+			VertexPBROutput* output = (VertexPBROutput*)data;
+			output->position = v.pos;
+		};
+		auto fragment = [](void* data){
+			VertexPBROutput* input = (VertexPBROutput*)data;
+			input->position;
+			return color;
+		};
+
+		void* vertexOutput = malloc(1024);
+		vertex(Vertex(), vertexOutput);
+
+	}
+}
+	
+
 	void
 	Lab5::Run()
 	{
+
+		
+
+		
+
+		int a;
+		auto foo = [](){};
+
 		std::vector<Vertex> quadV = { Vertex(vec3(1.0f, 1.0f, 0.0f), vec3(1.0f,1.0f,0), vec3()), // top r
 									  Vertex(vec3(1.0f, -1.0f,  0.0f), vec3(1.0f,0.0f,0), vec3()),  // botom r
 					  				  Vertex(vec3(-1.0f, -1.0f, 0.0f), vec3(0.0f,0.0f,0), vec3()),// bot l
@@ -176,16 +214,15 @@ namespace Example
 
 		MeshResource m(quadV, quadI);
 		m.SetupMeshResource();
-		//r.LoadOBJModel("./resources/suz.obj");
-		//r.AddBuffer(qube,indices, 0);
-		r.SaveFB();
+
 		while (this->window->IsOpen())
 		{
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			r.Draw(1);
 			quadShader.Bind();
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, tex_h);
 			quadShader.SetUniformTex("tex", 0);
+			glBindTexture(GL_TEXTURE_2D, tex_h);
 			m.BindVao();
 			m.BindIbo();
 //			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,r.GetFramebuffer());

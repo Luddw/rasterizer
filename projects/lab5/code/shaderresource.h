@@ -23,7 +23,7 @@ private:
 public:
 	ShaderResource(const std::string& file);
 	~ShaderResource();
-
+	ShaderResource(){};
 
 	void Bind() const; // gl use program
 	void UnBind();
