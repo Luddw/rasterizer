@@ -168,39 +168,33 @@ namespace Example
 		int a;
 	};
 
-class Rasterizer
-{
-	std::function<void(Vertex, void*)> vertex;
-	std::function<void(Vertex, void*)> fragment;
+// class Rasterizer
+// {
+// 	std::function<void(Vertex, void*)> vertex;
+// 	std::function<void(Vertex, void*)> fragment;
 
-	void Render(){
-	vertex = [](Vertex v, void* data){
-			VertexPBROutput* output = (VertexPBROutput*)data;
-			output->position = v.pos;
-		};
-		auto fragment = [](void* data){
-			VertexPBROutput* input = (VertexPBROutput*)data;
-			input->position;
-			return color;
-		};
+// 	void Render(){
+// 	vertex = [](Vertex v, void* data){
+// 			VertexPBROutput* output = (VertexPBROutput*)data;
+// 			output->position = v.pos;
+// 		};
+// 		auto fragment = [](void* data){
+// 			VertexPBROutput* input = (VertexPBROutput*)data;
+// 			input->position;
+// 			return color;
+// 		};
 
-		void* vertexOutput = malloc(1024);
-		vertex(Vertex(), vertexOutput);
+// 		void* vertexOutput = malloc(1024);
+// 		vertex(Vertex(), vertexOutput);
 
-	}
-}
+// 	}
+// }
 	
 
 	void
 	Lab5::Run()
 	{
 
-		
-
-		
-
-		int a;
-		auto foo = [](){};
 
 		std::vector<Vertex> quadV = { Vertex(vec3(1.0f, 1.0f, 0.0f), vec3(1.0f,1.0f,0), vec3()), // top r
 									  Vertex(vec3(1.0f, -1.0f,  0.0f), vec3(1.0f,0.0f,0), vec3()),  // botom r

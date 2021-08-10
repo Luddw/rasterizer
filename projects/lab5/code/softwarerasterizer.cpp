@@ -26,6 +26,14 @@ Renderer::Renderer(const int width, const int height)
 	projMat = perspectiveprojection(1.5705f, width/height, 0.0f, 1.0f);
 	viewMat = lookat(vec3(0,0,1.0f), vec3(0,0,0), vec3(0,1,0));
 	model_view_proj = GetMVP();
+
+	SetVertextShader([&](Vertex* inVert) {
+		vec4 t_pos(inVert->pos.x, inVert->pos.y, inVert->pos.z, 1.0);
+		t_pos.x += 0.5f;
+		t_pos = rotationx(-pi/4.0f) * t_pos;
+		inVert->pos = vec3(t_pos.x, t_pos.y, t_pos.z);
+		
+	});
 }
 
 Renderer::~Renderer()
@@ -38,23 +46,32 @@ void Renderer::Draw(unsigned int handle)
 {
 	
 	const BufferObject object = buffer_handles[handle];
-	SetVertextShader([&](Vertex v, void* data){
-		VertexOut
-	});
+
+	// auto foo = object.v_buffer[0];
+	// printf("before : %f \n", foo.pos.x);
+	// vertex_shader(&foo);
+	// printf("after : %f \n", foo.pos.x);
+
+	for (auto vert : object.v_buffer)
+	{
+		vertex_shader(&vert);
+	}
+	
 	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
 	{
+
 		vec3 points[3];
 		Vertex verts[3];
-
-		points[0] = object.v_buffer[object.i_buffer[i]].pos;
-		points[1] = object.v_buffer[object.i_buffer[i+1]].pos;
-		points[2] = object.v_buffer[object.i_buffer[i+2]].pos;
-
 		verts[0] = object.v_buffer[object.i_buffer[i]];
 		verts[1] = object.v_buffer[object.i_buffer[i+1]];
 		verts[2] = object.v_buffer[object.i_buffer[i+2]];
+		vertex_shader(&verts[0]);
+		vertex_shader(&verts[1]);
+		vertex_shader(&verts[2]);
 
-		vertex_shader(verts[0], verts);
+		points[0] = verts[0].pos;
+		points[1] = verts[1].pos;
+		points[2] = verts[2].pos;
 		BarRasterizeTriangle(points, Pixel{rand() % 254, rand() % 254, rand()% 254, 254});
 	}
 	
@@ -105,12 +122,12 @@ void Renderer::PlacePixel(unsigned int x, unsigned int y, Pixel pix)
 		this->frame_buffer[x + (y * fb_width)] = pix;
 }
 
-void Renderer::SetVertextShader(std::function<void(Vertex, void*)> vertex_lambda)
+void Renderer::SetVertextShader(std::function<void(Vertex*)> vertex_lambda)
 {
 	this->vertex_shader = vertex_lambda;
 }
 
-void Renderer::SetFragmentShader(std::function<void(Vertex, void*)> frag_lambda)
+void Renderer::SetFragmentShader(std::function<Pixel(Vertex)> frag_lambda)
 {
 	this->frag_shader = frag_lambda;
 }

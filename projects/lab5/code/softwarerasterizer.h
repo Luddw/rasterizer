@@ -107,8 +107,8 @@ public:
 	Pixel * GetFramebuffer();
 	const int GetFramebufferSize();
 	void PlacePixel(unsigned int x, unsigned int y, Pixel pix);
-	void SetVertextShader(std::function<void(Vertex, void*)> vertex_lambda);
-	void SetFragmentShader(std::function<void(Vertex, void*)> frag_lambda);
+	void SetVertextShader(std::function<void(Vertex*)> vertex_lambda);
+	void SetFragmentShader(std::function<Pixel(Vertex)> frag_lambda);
 	int GetHeight();
 	int GetWidth();
 	void Draw(unsigned int handle);
@@ -126,8 +126,8 @@ private:
 	int fb_width;
 	Pixel * frame_buffer;
 	float* depth_buffer;
-	std::function<void(Vertex, void*)> vertex_shader; 
-	std::function<void(Vertex, void*)> frag_shader;
+	std::function<void(Vertex*)> vertex_shader; 
+	std::function<Pixel(Vertex)> frag_shader;
 	mat4 model_view_proj;
 	mat4 viewMat;
 	mat4 projMat;
