@@ -216,6 +216,7 @@ namespace Example
 			quadShader.Bind();
 			glActiveTexture(GL_TEXTURE0);
 			quadShader.SetUniformTex("tex", 0);
+			r.DrawLine(Point{0.4,0.4}, Point{-0.4, -0.4}, Pixel{254, 254, 254, 254});
 			glBindTexture(GL_TEXTURE_2D, tex_h);
 			m.BindVao();
 			m.BindIbo();

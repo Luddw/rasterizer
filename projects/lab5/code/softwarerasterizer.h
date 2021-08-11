@@ -31,7 +31,7 @@ struct Pixel
 {
 	unsigned char r = 0;
 	unsigned char g = 0;
-	unsigned char b = 25;
+	unsigned char b = 0;
 	unsigned char a = 255;
 	Pixel(unsigned char red, unsigned char green, unsigned char blu, unsigned char alf) : r(red), g(green), b(blu), a(alf) {};
 	Pixel() {};
@@ -119,6 +119,7 @@ public:
 	void SetTexture(const Texture &tex);
 	void SaveFB();
 	bool LoadOBJModel(std::string filename);
+	void UpdateQuadTex(GLuint handle);
 	mat4 GetMVP();
 private:
 	std::map<unsigned int, BufferObject> buffer_handles;
@@ -131,6 +132,7 @@ private:
 	mat4 model_view_proj;
 	mat4 viewMat;
 	mat4 projMat;
+
 };
 
 

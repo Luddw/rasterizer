@@ -22,15 +22,36 @@ Renderer::Renderer(const int width, const int height)
 {
 	fb_width = width;
 	fb_height = height;
+	depth_buffer = new float[width*height];
+
 	SetupFrameBuffer(width, height);
 	projMat = perspectiveprojection(1.5705f, width/height, 0.0f, 1.0f);
 	viewMat = lookat(vec3(0,0,1.0f), vec3(0,0,0), vec3(0,1,0));
 	model_view_proj = GetMVP();
 
+
+
 	SetVertextShader([&](Vertex* inVert) {
 		vec4 t_pos(inVert->pos.x, inVert->pos.y, inVert->pos.z, 1.0);
-		t_pos.x += 0.5f;
-		t_pos = rotationx(-pi/4.0f) * t_pos;
+				
+		mat4 translation(vec4(1,0,0,0),
+						 vec4(0,1,0,0),
+						 vec4(0,0,1,0),
+						 vec4(0,0,0,1));
+
+		mat4 scale(		 vec4(0.5,0,0,0),
+						 vec4(0,0.5,0,0),
+						 vec4(0,0,0.5,0),
+						 vec4(0,0,0,1));
+
+		mat4 rot;// = rotationy(pi/8.0f);
+		//t_pos.x += 0.5f;
+		//t_pos = rotationx(-pi/4.0f) * t_pos;
+		mat4 model = translation * rot * scale;
+		mat4 view = lookat(vec3(0,0,-1), vec3(0,0,1), vec3(0,1,0));
+		mat4 proj = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
+		mat4 mvp = proj * view * model;
+		t_pos = mvp * t_pos;
 		inVert->pos = vec3(t_pos.x, t_pos.y, t_pos.z);
 		
 	});
@@ -38,7 +59,7 @@ Renderer::Renderer(const int width, const int height)
 
 Renderer::~Renderer()
 {
-
+	//delete depth_buffer;
 }
 
 
@@ -283,7 +304,7 @@ bool Renderer::LoadOBJModel(std::string filename)
 	
 	for (size_t i = 0; i < loader.LoadedVertices.size(); i++)
 	{
-		loader.LoadedVertices[i].pos *= 0.5f;
+		//loader.LoadedVertices[i].pos *= 0.5f;
 		loader.LoadedVertices[i].pos.z += 1.f;
 
 		outVerts.emplace_back(loader.LoadedVertices[i]);
@@ -299,11 +320,7 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 {
 	//convert from opengl-space to fb-space , half-pixel offset
 
-	for (size_t i = 0; i < 3; i++)
-	{
-		
-	}
-	
+
 	for (size_t ii = 0; ii < 3; ii++)
 	{
 		
@@ -367,4 +384,13 @@ mat4 Renderer::GetMVP()
 				vec4(0,0,0,1)) * viewMat * projMat ;
 }
 
-
+void Renderer::UpdateQuadTex(GLuint handle)
+{
+	glBindTexture(GL_TEXTURE_2D, handle);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,fb_width,fb_height,0,GL_RGBA,GL_UNSIGNED_BYTE, frame_buffer);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
