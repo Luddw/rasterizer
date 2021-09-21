@@ -460,7 +460,7 @@ barycentric(vec3* points, vec3 P)
     );
 
     // edge-case in case of degen-triangle
-    if (std::abs(u[2] < 1))
+    if (std::abs(u[2]) < 1)
         return vec3(-1,1,1);
 
     return vec3(1.0f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
