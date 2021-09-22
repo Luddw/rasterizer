@@ -212,16 +212,15 @@ namespace Example
 		while (this->window->IsOpen())
 		{
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			r.ClearFB();
 			r.Draw(1);
+			r.UpdateQuadTex(tex_h);
 			quadShader.Bind();
 			glActiveTexture(GL_TEXTURE0);
 			quadShader.SetUniformTex("tex", 0);
-			r.DrawLine(Point{0.4,0.4}, Point{-0.4, -0.4}, Pixel{254, 254, 254, 254});
 			glBindTexture(GL_TEXTURE_2D, tex_h);
 			m.BindVao();
 			m.BindIbo();
-//			glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,r.GetFramebuffer());
-			//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, r.GetWidth(), r.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, r.GetFramebuffer());
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 			glBindTexture(GL_TEXTURE_2D, 0);
 			this->window->Update();

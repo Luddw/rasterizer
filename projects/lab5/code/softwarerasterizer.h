@@ -35,6 +35,7 @@ struct Pixel
 	unsigned char a = 255;
 	Pixel(unsigned char red, unsigned char green, unsigned char blu, unsigned char alf) : r(red), g(green), b(blu), a(alf) {};
 	Pixel() {};
+
 };
 
 
@@ -121,6 +122,7 @@ public:
 	bool LoadOBJModel(std::string filename);
 	void UpdateQuadTex(GLuint handle);
 	mat4 GetMVP();
+	void ClearFB();
 private:
 	std::map<unsigned int, BufferObject> buffer_handles;
 	int fb_height;

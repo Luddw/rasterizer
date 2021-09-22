@@ -12,7 +12,6 @@
 
 
 
-
 Renderer::Renderer() : fb_width(0), fb_height(0), frame_buffer(nullptr), depth_buffer(nullptr)
 {
 
@@ -22,9 +21,10 @@ Renderer::Renderer(const int width, const int height)
 {
 	fb_width = width;
 	fb_height = height;
-	depth_buffer = new float[width*height];
+	frame_buffer = new Pixel[width * height];
+	depth_buffer = new float[width * height];
 
-	SetupFrameBuffer(width, height);
+	//SetupFrameBuffer(width, height);
 	projMat = perspectiveprojection(1.5705f, width/height, 0.0f, 1.0f);
 	viewMat = lookat(vec3(0,0,1.0f), vec3(0,0,0), vec3(0,1,0));
 	model_view_proj = GetMVP();
@@ -33,25 +33,26 @@ Renderer::Renderer(const int width, const int height)
 
 	SetVertextShader([&](Vertex* inVert) {
 		vec4 t_pos(inVert->pos.x, inVert->pos.y, inVert->pos.z, 1.0);
-				
+		t_pos.x += 0.05f;
 		mat4 translation(vec4(1,0,0,0),
 						 vec4(0,1,0,0),
 						 vec4(0,0,1,0),
 						 vec4(0,0,0,1));
 
-		mat4 scale(		 vec4(0.5,0,0,0),
-						 vec4(0,0.5,0,0),
-						 vec4(0,0,0.5,0),
+		mat4 scale(		 vec4(1,0,0,0),
+						 vec4(0,1,0,0),
+						 vec4(0,0,1,0),
 						 vec4(0,0,0,1));
 
-		mat4 rot;// = rotationy(pi/8.0f);
-		//t_pos.x += 0.5f;
+		mat4 rot = rotationy(cos(abs(pi/8)));
 		//t_pos = rotationx(-pi/4.0f) * t_pos;
+		
 		mat4 model = translation * rot * scale;
 		mat4 view = lookat(vec3(0,0,-1), vec3(0,0,1), vec3(0,1,0));
 		mat4 proj = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
 		mat4 mvp = proj * view * model;
 		t_pos = mvp * t_pos;
+
 		inVert->pos = vec3(t_pos.x, t_pos.y, t_pos.z);
 		
 	});
@@ -65,13 +66,13 @@ Renderer::~Renderer()
 
 void Renderer::Draw(unsigned int handle)
 {
-	
 	const BufferObject object = buffer_handles[handle];
 
 	// auto foo = object.v_buffer[0];
 	// printf("before : %f \n", foo.pos.x);
 	// vertex_shader(&foo);
 	// printf("after : %f \n", foo.pos.x);
+
 
 	for (auto vert : object.v_buffer)
 	{
@@ -386,11 +387,26 @@ mat4 Renderer::GetMVP()
 
 void Renderer::UpdateQuadTex(GLuint handle)
 {
+
 	glBindTexture(GL_TEXTURE_2D, handle);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,fb_width,fb_height,0,GL_RGBA,GL_UNSIGNED_BYTE, frame_buffer);
+	glTexSubImage2D(GL_TEXTURE_2D,0,0,0,fb_width,fb_height,GL_RGBA,GL_UNSIGNED_BYTE, frame_buffer);
+	//glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,fb_width,fb_height,0,GL_RGBA,GL_UNSIGNED_BYTE, frame_buffer);
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+void Renderer::ClearFB()
+{
+	for (size_t i = 0; i < fb_height*fb_width; i++)
+	{
+		frame_buffer[i].r = 254;
+		frame_buffer[i].g = 0; 
+		frame_buffer[i].b = 0; 
+		frame_buffer[i].a = 254; 
+
+	}
+
+	
 }
