@@ -11,7 +11,7 @@
 #include <time.h>
 
 
-
+static float gamer = 0;
 Renderer::Renderer() : fb_width(0), fb_height(0), frame_buffer(nullptr), depth_buffer(nullptr)
 {
 
@@ -44,7 +44,7 @@ Renderer::Renderer(const int width, const int height)
 						 vec4(0,0,1,0),
 						 vec4(0,0,0,1));
 
-		mat4 rot = rotationy(cos(abs(pi/8)));
+		mat4 rot = rotationy(gamer);
 		//t_pos = rotationx(-pi/4.0f) * t_pos;
 		
 		mat4 model = translation * rot * scale;
@@ -73,7 +73,7 @@ void Renderer::Draw(unsigned int handle)
 	// vertex_shader(&foo);
 	// printf("after : %f \n", foo.pos.x);
 
-
+	gamer += 0.05f;
 	for (auto vert : object.v_buffer)
 	{
 		vertex_shader(&vert);
@@ -401,7 +401,7 @@ void Renderer::ClearFB()
 {
 	for (size_t i = 0; i < fb_height*fb_width; i++)
 	{
-		frame_buffer[i].r = 254;
+		frame_buffer[i].r = 0;
 		frame_buffer[i].g = 0; 
 		frame_buffer[i].b = 0; 
 		frame_buffer[i].a = 254; 

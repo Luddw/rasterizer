@@ -123,6 +123,7 @@ public:
 	void UpdateQuadTex(GLuint handle);
 	mat4 GetMVP();
 	void ClearFB();
+	
 private:
 	std::map<unsigned int, BufferObject> buffer_handles;
 	int fb_height;
@@ -135,6 +136,11 @@ private:
 	mat4 viewMat;
 	mat4 projMat;
 
+
+	/*Texture fb_tex;
+	ShaderResource fb_shader;
+	MeshResource fb_mesh;*/
+	void InitResources();
 };
 
 

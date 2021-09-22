@@ -212,7 +212,7 @@ namespace Example
 		while (this->window->IsOpen())
 		{
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			r.ClearFB();
+			//r.ClearFB();
 			r.Draw(1);
 			r.UpdateQuadTex(tex_h);
 			quadShader.Bind();
