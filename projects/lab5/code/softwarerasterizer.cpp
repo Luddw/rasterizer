@@ -33,7 +33,7 @@ Renderer::Renderer(const int width, const int height)
 
 	SetVertextShader([&](Vertex* inVert) {
 		vec4 t_pos(inVert->pos.x, inVert->pos.y, inVert->pos.z, 1.0);
-		t_pos.x += 0.05f;
+		
 		mat4 translation(vec4(1,0,0,0),
 						 vec4(0,1,0,0),
 						 vec4(0,0,1,0),
@@ -47,11 +47,13 @@ Renderer::Renderer(const int width, const int height)
 		mat4 rot = rotationy(gamer);
 		//t_pos = rotationx(-pi/4.0f) * t_pos;
 		
-		mat4 model = translation * rot * scale;
+		mat4 model = scale * rot * translation;
+		//mat4 model = translation * rot * scale;
 		mat4 view = lookat(vec3(0,0,-1), vec3(0,0,1), vec3(0,1,0));
-		mat4 proj = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
+		mat4 proj = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.01f, 100.0f);
 		mat4 mvp = proj * view * model;
-		t_pos = mvp * t_pos;
+		//t_pos = model * t_pos;
+		t_pos = model * view * proj * t_pos;
 
 		inVert->pos = vec3(t_pos.x, t_pos.y, t_pos.z);
 		
@@ -72,8 +74,8 @@ void Renderer::Draw(unsigned int handle)
 	// printf("before : %f \n", foo.pos.x);
 	// vertex_shader(&foo);
 	// printf("after : %f \n", foo.pos.x);
-
-	gamer += 0.05f;
+	//ClearFB();
+	
 	for (auto vert : object.v_buffer)
 	{
 		vertex_shader(&vert);
@@ -96,6 +98,8 @@ void Renderer::Draw(unsigned int handle)
 		points[2] = verts[2].pos;
 		BarRasterizeTriangle(points, Pixel{rand() % 254, rand() % 254, rand()% 254, 254});
 	}
+
+	gamer += 0.05f;
 	
 
 	
