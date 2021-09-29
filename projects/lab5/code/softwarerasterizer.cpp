@@ -31,8 +31,8 @@ Renderer::Renderer(const int width, const int height)
 
 
 
-	SetVertextShader([&](Vertex* inVert) {
-		vec4 t_pos(inVert->pos.x, inVert->pos.y, inVert->pos.z, 1.0);
+	SetVertextShader([&](Vertex& inVert) {
+		vec4 t_pos(inVert.pos.x, inVert.pos.y, inVert.pos.z, 1.0);
 		
 		mat4 translation;
 
@@ -44,24 +44,24 @@ Renderer::Renderer(const int width, const int height)
 		
 		mat4 model = scale * rot * translation;
 		//mat4 model = translation * rot * scale;
-		mat4 view = lookat(vec3(0,0,1), vec3(0,0,-1), vec3(0,1,0));
+		mat4 view = lookat(vec3(0,0,1), vec3(0,0,0), vec3(0,1,0));
 		mat4 proj = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
 		//mat4 mvp = proj * view * model;
 		//t_pos = model * t_pos;
 		//t_pos = model * view * proj * t_pos;
-		t_pos = proj * t_pos;
-		t_pos = view * t_pos;
 		t_pos = model * t_pos;
+		t_pos = view * t_pos;
+		t_pos = proj * t_pos;
 
-		t_pos /= t_pos.w;
-		t_pos.x += 1;    
-		t_pos.y += 1;
+	    //t_pos /= t_pos.w;
+		// t_pos.x += 1;    
+		// t_pos.y += 1;
 
 
-		t_pos.x *= GetWidth() / 2;
-		t_pos.y *= GetHeight() / 2;
+		// t_pos.x *= GetWidth() / 2;
+		// t_pos.y *= GetHeight() / 2;
 
-		inVert->pos = vec3(t_pos.x, t_pos.y, t_pos.z);
+		inVert.pos = vec3(t_pos.x, t_pos.y, t_pos.z);
 		
 	});
 }
@@ -84,9 +84,9 @@ void Renderer::Draw(unsigned int handle)
 		verts[0] = object.v_buffer[object.i_buffer[i]];
 		verts[1] = object.v_buffer[object.i_buffer[i+1]];
 		verts[2] = object.v_buffer[object.i_buffer[i+2]];
-		vertex_shader(&verts[0]);
-		vertex_shader(&verts[1]);
-		vertex_shader(&verts[2]);
+		vertex_shader(verts[0]);
+		vertex_shader(verts[1]);
+		vertex_shader(verts[2]);
 
 		points[0] = verts[0].pos;
 		points[1] = verts[1].pos;
@@ -147,7 +147,7 @@ void Renderer::PlacePixel(unsigned int x, unsigned int y, Pixel pix)
 		this->frame_buffer[x + (y * fb_width)] = pix;
 }
 
-void Renderer::SetVertextShader(std::function<void(Vertex*)> vertex_lambda)
+void Renderer::SetVertextShader(std::function<void(Vertex&)> vertex_lambda)
 {
 	this->vertex_shader = vertex_lambda;
 }
@@ -303,6 +303,15 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 {
 	//convert from opengl-space to fb-space , half-pixel offset
 
+
+	for (size_t ii = 0; ii < 3; ii++)
+	{	
+		int temp_x, temp_y;
+		temp_x = (points[ii].x + 0.5f) * fb_width / 2.0f;
+		temp_y = (points[ii].y + 0.5f) * fb_height / 2.0f;
+		points[ii].x = temp_x;
+		points[ii].y = temp_y;
+	}
 
 	//setup Bounding box from vertices
 
