@@ -136,7 +136,7 @@ namespace Example
 
 			glGenTextures(1, &tex_h);
 						
-			r.LoadOBJModel("./resources/suz1.obj");
+			r.LoadOBJModel("./resources/smallsuz.obj");
 			r.Draw(1);
 			glBindTexture(GL_TEXTURE_2D, tex_h);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

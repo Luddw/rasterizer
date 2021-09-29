@@ -25,8 +25,8 @@ Renderer::Renderer(const int width, const int height)
 	//depth_buffer = new float[width * height];
 
 	SetupFrameBuffer(width, height);
-	projMat = perspectiveprojection(1.5705f, width/height, 0.0f, 1.0f);
-	viewMat = lookat(vec3(0,0,1.0f), vec3(0,0,0), vec3(0,1,0));
+	projMat = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
+	viewMat = lookat(vec3(0,0,1.0f), vec3(0,0,-1), vec3(0,1,0));
 	model_view_proj = GetMVP();
 
 
@@ -34,15 +34,9 @@ Renderer::Renderer(const int width, const int height)
 	SetVertextShader([&](Vertex* inVert) {
 		vec4 t_pos(inVert->pos.x, inVert->pos.y, inVert->pos.z, 1.0);
 		
-		mat4 translation(vec4(1,0,0,0),
-						 vec4(0,1,0,0),
-						 vec4(0,0,1,0),
-						 vec4(0,0,0,1));
+		mat4 translation;
 
-		mat4 scale(		 vec4(1,0,0,0),
-						 vec4(0,1,0,0),
-						 vec4(0,0,1,0),
-						 vec4(0,0,0,1));
+		mat4 scale;
 
 		mat4 rot = rotationy(gamer);
 		
@@ -50,11 +44,22 @@ Renderer::Renderer(const int width, const int height)
 		
 		mat4 model = scale * rot * translation;
 		//mat4 model = translation * rot * scale;
-		mat4 view = lookat(vec3(0,0,-1), vec3(0,0,1), vec3(0,1,0));
+		mat4 view = lookat(vec3(0,0,1), vec3(0,0,-1), vec3(0,1,0));
 		mat4 proj = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
-		mat4 mvp = proj * view * model;
+		//mat4 mvp = proj * view * model;
 		//t_pos = model * t_pos;
-		t_pos = model * view * proj * t_pos;
+		//t_pos = model * view * proj * t_pos;
+		t_pos = proj * t_pos;
+		t_pos = view * t_pos;
+		t_pos = model * t_pos;
+
+		t_pos /= t_pos.w;
+		t_pos.x += 1;    
+		t_pos.y += 1;
+
+
+		t_pos.x *= GetWidth() / 2;
+		t_pos.y *= GetHeight() / 2;
 
 		inVert->pos = vec3(t_pos.x, t_pos.y, t_pos.z);
 		
@@ -71,17 +76,6 @@ void Renderer::Draw(unsigned int handle)
 {
 	const BufferObject object = buffer_handles[handle];
 
-	// auto foo = object.v_buffer[0];
-	// printf("before : %f \n", foo.pos.x);
-	// vertex_shader(&foo);
-	// printf("after : %f \n", foo.pos.x);
-	//ClearFB();
-	
-	for (auto vert : object.v_buffer)
-	{
-		vertex_shader(&vert);
-	}
-	
 	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
 	{
 
@@ -189,57 +183,48 @@ void Renderer::SaveFB()
 
 
 //bresenham line function 
-void Renderer::DrawLine(Point p1, Point p2 , Pixel colour)
+void Renderer::DrawLine(vec3 p1, vec3 p2)
 {
-	bool isSteep = false;
-	int temp_x1, temp_y1, temp_x2, temp_y2;
-	temp_x1 = (p1.xpos * 0.5f + 0.5f) * fb_width;
-	temp_x2 = (p2.xpos * 0.5f + 0.5f) * fb_width;
-	temp_y1 = (p1.ypos * 0.5f + 0.5f) * fb_height;
-	temp_y2 = (p2.ypos * 0.5f + 0.5f) * fb_height;
-	
-	p2.xpos = temp_x2;
-	p2.ypos = temp_y2;
-	p1.xpos = temp_x1;
-	p1.ypos = temp_y1;
-	if (std::abs(p1.xpos - p2.xpos) < std::abs(p1.ypos - p2.ypos))
-	{
-		std::swap(p1.xpos, p1.ypos);
-		std::swap(p2.xpos, p2.ypos);
-		isSteep = true;
-	}
+    bool isSteep = false;
+    
+    if (std::abs(p1.x - p2.x) < std::abs(p1.y - p2.y))
+    {
+        std::swap(p1.x, p1.y);
+        std::swap(p2.x, p2.y);
+        isSteep = true;
+    }
 
-	if (p1.xpos > p2.xpos) // switch to left-to-right
-	{
-		std::swap(p1.xpos, p2.xpos);
-		std::swap(p1.ypos, p2.ypos);
-	}
-	int dx = p2.xpos - p1.xpos;
-	int dy = p2.ypos - p1.ypos;
-	int dError = std::abs(dy) * 2;
-	int error = 0;
-	int y = p1.ypos;
-	
+    if (p1.x > p2.x) // switch to left-to-right
+    {
+        std::swap(p1.x, p2.x);
+        std::swap(p1.y, p2.y);
+    }
+    int dx = p2.x - p1.x;
+    int dy = p2.y - p1.y;
+    int dError = std::abs(dy) * 2;
+    int error = 0;
+    int y = p1.y;
+    
 
 
-	for (size_t x = temp_x1; x <= temp_x2; x++)
-	{
-		
-		if (isSteep)
-			PlacePixel(y, x, colour);
-		else
-			PlacePixel(x, y, colour);
+    for (size_t x = p1.x; x <= p2.x; x++)
+    {
+        
+        if (isSteep)
+            PlacePixel(y, x, Pixel(255,255,255,255));
+        else
+            PlacePixel(x, y, Pixel(255,255,255,255));
 
-		error += dError;
-		if (error > dx)
-		{
-			y += (temp_y2 > temp_y1 ? 1 : -1);
-			error -= dx * 2;
-		}	
-	}
-	
-	
-	
+        error += dError;
+        if (error > dx)
+        {
+            y += (p2.y > p1.y ? 1 : -1);
+            error -= dx * 2;
+        }    
+    }
+    
+    
+    
 
 }
 
@@ -303,7 +288,7 @@ bool Renderer::LoadOBJModel(std::string filename)
 	for (size_t i = 0; i < loader.LoadedVertices.size(); i++)
 	{
 		//loader.LoadedVertices[i].pos *= 0.5f;
-		loader.LoadedVertices[i].pos.z += 1.f;
+		//loader.LoadedVertices[i].pos.z += 1.f;
 
 		outVerts.emplace_back(loader.LoadedVertices[i]);
 	}
@@ -318,15 +303,6 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 {
 	//convert from opengl-space to fb-space , half-pixel offset
 
-
-	for (size_t ii = 0; ii < 3; ii++)
-	{	
-		int temp_x, temp_y;
-		temp_x = (points[ii].x + 0.5f) * fb_width / 2.0f;
-		temp_y = (points[ii].y + 0.5f) * fb_height / 2.0f;
-		points[ii].x = temp_x;
-		points[ii].y = temp_y;
-	}
 
 	//setup Bounding box from vertices
 
