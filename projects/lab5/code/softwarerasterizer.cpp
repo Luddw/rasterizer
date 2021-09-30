@@ -44,7 +44,7 @@ Renderer::Renderer(const int width, const int height)
 		
 		mat4 model = scale * rot * translation;
 		//mat4 model = translation * rot * scale;
-		mat4 view = lookat(vec3(0,0,1), vec3(0,0,0), vec3(0,1,0));
+		mat4 view = lookat(vec3(0,0,3), vec3(0,0,-1), vec3(0,1,0));
 		mat4 proj = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
 		//mat4 mvp = proj * view * model;
 		//t_pos = model * t_pos;
@@ -53,9 +53,11 @@ Renderer::Renderer(const int width, const int height)
 		t_pos = view * t_pos;
 		t_pos = proj * t_pos;
 
-	    //t_pos /= t_pos.w;
-		// t_pos.x += 1;    
-		// t_pos.y += 1;
+	    // t_pos.x /= t_pos.w;
+	    // t_pos.y /= t_pos.w;
+	    // t_pos.z /= t_pos.w;
+		t_pos.x += 1;    
+		t_pos.y += 1;
 
 
 		// t_pos.x *= GetWidth() / 2;
@@ -91,8 +93,10 @@ void Renderer::Draw(unsigned int handle)
 		points[0] = verts[0].pos;
 		points[1] = verts[1].pos;
 		points[2] = verts[2].pos;
+		//WireFrame(points[0], points[1], points[2]);
 		BarRasterizeTriangle(points, Pixel{254, 254, 254, 254});
 		//RasterizeTriangle(points[0], points[1], points[2], Pixel{254, 254, 254, 254});
+
 	}
 
 	gamer += 0.05f;
@@ -186,6 +190,7 @@ void Renderer::SaveFB()
 void Renderer::DrawLine(vec3 p1, vec3 p2)
 {
     bool isSteep = false;
+
     
     if (std::abs(p1.x - p2.x) < std::abs(p1.y - p2.y))
     {
@@ -211,9 +216,9 @@ void Renderer::DrawLine(vec3 p1, vec3 p2)
     {
         
         if (isSteep)
-            PlacePixel(y, x, Pixel(255,255,255,255));
+            PlacePixel(y, x, Pixel(0,255,0,255));
         else
-            PlacePixel(x, y, Pixel(255,255,255,255));
+            PlacePixel(x, y, Pixel(0,255,0,255));
 
         error += dError;
         if (error > dx)
@@ -230,43 +235,42 @@ void Renderer::DrawLine(vec3 p1, vec3 p2)
 
 
 //scanline raster
-void Renderer::RasterizeTriangle(vec3 v1, vec3 v2, vec3 v3, Pixel colour)
+void Renderer::RasterizeTriangle(vec3 v0, vec3 v1, vec3 v2, Pixel colour)
 {
-	if (v1.y == v2.y && v1.y == v3.y)
+	if (v0.y == v1.y && v0.y == v2.y)
 		return;
 	
+    if (v0.y > v1.y)
+        std::swap(v0, v1);
+    if (v0.y > v2.y)
+        std::swap(v0, v2);
     if (v1.y > v2.y)
         std::swap(v1, v2);
-    if (v1.y > v3.y)
-        std::swap(v1, v3);
-    if (v2.y > v3.y)
-        std::swap(v2, v3);
 
-    float height = v3.y - v1.y; //total "height" of the triangle to raster
-
+    float height = v2.y - v0.y; //total "height" of the triangle to raster
 
     // scanline rasterization, both segments
     for (size_t i = 0; i < height; i++)
     {        
-        bool isSegmentTwo = i > v2.y - v1.y || v2.y == v1.y;
-        int heightSegment = isSegmentTwo ? v3.y - v2.y : v2.y - v1.y;
+        bool isSegmentTwo = i > v1.y - v0.y || v1.y == v0.y;
+        int heightSegment = isSegmentTwo ? v2.y - v1.y : v1.y - v0.y;
 
         float a = (float)i / height;
-        float b = (float)(i - (isSegmentTwo ? v2.y - v1.y : 0)) / heightSegment;
-        vec3 A = v1 + vec3(v3 - v1) * a;
-        vec3 B = isSegmentTwo ? v2 + vec3(v3 + v2) * b : v1 + vec3(v2 - v1) * b;
+        float b = (float)(i - (isSegmentTwo ? v1.y - v0.y : 0))/heightSegment;
+        vec3 A = v0 + vec3(v2 - v0) * a;
+        vec3 B = isSegmentTwo ? v1 + vec3(v2 - v1) * b : v0 + vec3(v1 - v0) * b;
         if (A.x > B.x)
             std::swap(A, B);
 
         for (size_t ii = A.x; ii <= B.x; ii++)
         {
             float k = B.x == A.x ? 1.0f : (float)(ii - A.x) / (float)(B.x - A.x);
-            vec3 P = vec3(A) + vec3(B - A) * k;
+            vec3 P = vec3(A) + vec3(B - A)*k;
             int index = P.x + P.y * fb_width;
             if (depth_buffer[index] < P.z)
             {
                 depth_buffer[index] = P.z;
-                PlacePixel(P.x, P.y, Pixel{254 * P.z + 1, 254 * P.z + 1, 254 * P.z + 1, 254});
+                PlacePixel(P.x, P.y, Pixel{254 * P.z, 254 * P.z, 254 * P.z, 254});
             }    
         }
     }
@@ -306,9 +310,9 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 
 	for (size_t ii = 0; ii < 3; ii++)
 	{	
-		int temp_x, temp_y;
-		temp_x = (points[ii].x + 0.5f) * fb_width / 2.0f;
-		temp_y = (points[ii].y + 0.5f) * fb_height / 2.0f;
+		float temp_x, temp_y;
+		temp_x = (points[ii].x) * fb_width / 2.0f;
+		temp_y = (points[ii].y) * fb_height / 2.0f;
 		points[ii].x = temp_x;
 		points[ii].y = temp_y;
 	}
@@ -395,3 +399,17 @@ void Renderer::ClearFB()
 
 	
 }
+void Renderer::WireFrame(vec3 v0, vec3 v1, vec3 v2)
+{
+	
+	v0.x *= GetWidth() / 2;
+	v0.y *= GetHeight() / 2;
+	v1.x *= GetWidth() / 2;
+	v1.y *= GetHeight() / 2;
+	v2.x *= GetWidth() / 2;
+	v2.y *= GetHeight() / 2;
+	DrawLine(v0, v1);
+	DrawLine(v1, v2);
+	DrawLine(v2, v0);
+}
+

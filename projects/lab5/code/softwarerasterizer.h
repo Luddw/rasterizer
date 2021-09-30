@@ -113,7 +113,7 @@ public:
 	int GetHeight();
 	int GetWidth();
 	void Draw(unsigned int handle);
-	void RasterizeTriangle(vec3 v1, vec3 v2, vec3 v3, Pixel colour);
+	void RasterizeTriangle(vec3 v0, vec3 v1, vec3 v2, Pixel colour);
 	void BarRasterizeTriangle(vec3* points, Pixel colour);
 	void SetModelViewProjectionMatrix(const mat4 &mvp);
     void DrawLine(vec3 p1, vec3 p2);
@@ -123,7 +123,7 @@ public:
 	void UpdateQuadTex(GLuint handle);
 	mat4 GetMVP();
 	void ClearFB();
-	
+	void WireFrame(vec3 v0, vec3 v1, vec3 v2);
 private:
 	std::map<unsigned int, BufferObject> buffer_handles;
 	int fb_height;
