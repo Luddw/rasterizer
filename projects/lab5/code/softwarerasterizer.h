@@ -124,7 +124,13 @@ public:
 	mat4 GetMVP();
 	void ClearFB();
 	void WireFrame(vec3 v0, vec3 v1, vec3 v2);
+	void TriangleRaster(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color);
 private:
+	void FlatTopTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color);
+	void FlatBottomTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color);
+
+
+
 	std::map<unsigned int, BufferObject> buffer_handles;
 	int fb_height;
 	int fb_width;

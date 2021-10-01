@@ -53,15 +53,15 @@ Renderer::Renderer(const int width, const int height)
 		t_pos = view * t_pos;
 		t_pos = proj * t_pos;
 
-	    // t_pos.x /= t_pos.w;
-	    // t_pos.y /= t_pos.w;
-	    // t_pos.z /= t_pos.w;
+	    t_pos.x /= t_pos.w;
+	    t_pos.y /= t_pos.w;
+	    t_pos.z /= t_pos.w;
 		t_pos.x += 1;    
 		t_pos.y += 1;
 
 
-		// t_pos.x *= GetWidth() / 2;
-		// t_pos.y *= GetHeight() / 2;
+		t_pos.x *= GetWidth() / 2;
+		t_pos.y *= GetHeight() / 2;
 
 		inVert.pos = vec3(t_pos.x, t_pos.y, t_pos.z);
 		
@@ -94,16 +94,16 @@ void Renderer::Draw(unsigned int handle)
 		points[1] = verts[1].pos;
 		points[2] = verts[2].pos;
 		//WireFrame(points[0], points[1], points[2]);
-		BarRasterizeTriangle(points, Pixel{254, 254, 254, 254});
+		//BarRasterizeTriangle(points, Pixel{254, 254, 254, 254});
 		//RasterizeTriangle(points[0], points[1], points[2], Pixel{254, 254, 254, 254});
-
+		TriangleRaster(points[0], points[1], points[2], Pixel{rand()%255, rand()%255, rand()%255, 255});
 	}
 
 	gamer += 0.05f;
 	
 
 	
-
+	
 
 	
 
@@ -411,5 +411,96 @@ void Renderer::WireFrame(vec3 v0, vec3 v1, vec3 v2)
 	DrawLine(v0, v1);
 	DrawLine(v1, v2);
 	DrawLine(v2, v0);
+}
+
+
+
+void Renderer::TriangleRaster(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color)
+{
+	const vec3* p_v0 = &v0;
+	const vec3* p_v1 = &v1;
+	const vec3* p_v2 = &v2;
+
+	// sort height of vertices
+	if (p_v1->y < p_v0->y)
+		std::swap(p_v0, p_v1);
+	if (p_v2->y < p_v1->y)
+		std::swap(p_v1, p_v2);
+	if (p_v1->y < p_v0->y)
+		std::swap(p_v0, p_v1);
+	
+	// identify the type of triangle, top-  bot- right- left- major
+
+	if (p_v0->y == p_v1->y)	// top flat
+	{
+		// sort vertices by x-coord
+		if (p_v1->x < p_v0->x)
+			std::swap(p_v0, p_v1);
+		FlatTopTriangle(*p_v0, *p_v1, *p_v2, color);
+	}
+	else if (p_v1->y == p_v2->y)	// bottom flat
+	{
+		// sort vertices by x-coord
+		if (p_v2->x < p_v1->x)
+			std::swap(p_v1, p_v2);
+		FlatBottomTriangle(*p_v0, *p_v1, *p_v2, color);
+	}
+	else // any triangle
+	{
+		// find top bottom split vertex
+		float k_split = (p_v1->y - p_v0->y) / (p_v2->y - p_v0->y);
+		vec3 vK = *p_v0 + (*p_v2 - *p_v0) * k_split;
+
+		if (p_v1->x < vK.x) // right major
+		{
+			FlatBottomTriangle(*p_v0, *p_v1, vK, color);
+			FlatTopTriangle(*p_v1, vK, *p_v2, color);
+		}
+		else	// left major
+		{
+			FlatBottomTriangle(*p_v0, vK, *p_v1, color);
+			FlatTopTriangle(vK, *p_v1, *p_v2, color);
+		}
+		
+	}
+	
+}
+
+void Renderer::FlatTopTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color)
+{
+
+
+	// calc line slopes in screen-space
+	float m0 = (v2.x - v0.x) / (v2.y - v0.y);
+	float m1 = (v2.x - v1.x) / (v2.y - v1.y);
+
+	// start and end for scanlines
+	int scan_start = (int)ceil(v0.y - 0.5f);
+	int scan_end = (int)ceil(v2.y - 0.5f);
+
+	for (size_t y = scan_start; y < scan_end; y++)
+	{
+		// scanline start X
+		float px0 = m0 * (float(y) + 0.5f - v0.y) + v0.x;
+		float px1 = m1 * (float(y) + 0.5f - v1.y) + v1.x;
+
+		// start, end pixels
+		int pix_start = (int)ceil(px0 - 0.5f);
+		int pix_end = (int)ceil(px1 - 0.5f);
+
+		for (size_t x = pix_start; x < pix_end; x++)
+		{
+			
+			PlacePixel(x, y, color);
+		}
+		
+	}
+	
+
+}
+
+void Renderer::FlatBottomTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color)
+{
+
 }
 
