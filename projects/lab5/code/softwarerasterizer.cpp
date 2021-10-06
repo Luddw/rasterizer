@@ -23,48 +23,71 @@ Renderer::Renderer(const int width, const int height)
 	fb_height = height;
 	//frame_buffer = new Pixel[width * height];
 	//depth_buffer = new float[width * height];
-
+	height_offset = height / 2.0f;    
+	width_offset = width / 2.0f;    
 	SetupFrameBuffer(width, height);
 	projMat = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
 	viewMat = lookat(vec3(0,0,1.0f), vec3(0,0,-1), vec3(0,1,0));
-	model_view_proj = GetMVP();
+
 
 
 
 	SetVertextShader([&](Vertex& inVert) {
 		vec4 t_pos(inVert.pos.x, inVert.pos.y, inVert.pos.z, 1.0);
 		
-		mat4 translation;
+		// mat4 translation(	vec4(1,0,1,0),
+		// 					vec4(0,1,0,0),
+		// 					vec4(0,0,1,0),
+		// 					vec4(1,1,0,1)
 
-		mat4 scale;
+		// );
+		mat4 translation(	1,0,1,0,
+							0,1,0,0,
+							0,0,1,0,
+							0,0,-10,1
 
-		mat4 rot = rotationy(gamer);
+		);
+		mat4 scale(
+
+							vec4(0.25,0,0,0),
+							vec4(0,0.25,0,0),
+							vec4(0,0,0.25,0),
+							vec4(0,0,0,1)
+		);
+
+		mat4 roty = rotationy(gamer);
+		mat4 rotx = rotationx(gamer);
+		
+		mat4 rot = roty * rotx;
 		
 		//t_pos = rotationx(-pi/4.0f) * t_pos;
 		
 		mat4 model = scale * rot * translation;
 		//mat4 model = translation * rot * scale;
-		mat4 view = lookat(vec3(0,0,3), vec3(0,0,-1), vec3(0,1,0));
+		mat4 view = lookat(vec3(0,0,0), vec3(0,0,-1), vec3(0,1,0));
 		mat4 proj = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
-		//mat4 mvp = proj * view * model;
+		//mat4 mvp = model * view * proj;
 		//t_pos = model * t_pos;
 		//t_pos = model * view * proj * t_pos;
+		// t_pos = mvp * t_pos;
 		t_pos = model * t_pos;
-		t_pos = view * t_pos;
-		t_pos = proj * t_pos;
+		t_pos = transform(t_pos, view);
+		t_pos = transform(t_pos, proj);
 
 	    t_pos.x /= t_pos.w;
 	    t_pos.y /= t_pos.w;
 	    t_pos.z /= t_pos.w;
-		t_pos.x += 1;    
-		t_pos.y += 1;
+		// t_pos.x += 1;    
+		// t_pos.y += 1;
+		//t_pos.z += 1.0f;
+		
 
 
-		t_pos.x *= GetWidth() / 2;
-		t_pos.y *= GetHeight() / 2;
+		// t_pos.x *= GetWidth() / 2.0f;
+		// t_pos.y *= GetHeight() / 2.0f;
 
 		inVert.pos = vec3(t_pos.x, t_pos.y, t_pos.z);
-		
+
 	});
 }
 
@@ -77,7 +100,7 @@ Renderer::~Renderer()
 void Renderer::Draw(unsigned int handle)
 {
 	const BufferObject object = buffer_handles[handle];
-
+	int randomcolor;
 	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
 	{
 
@@ -93,15 +116,32 @@ void Renderer::Draw(unsigned int handle)
 		points[0] = verts[0].pos;
 		points[1] = verts[1].pos;
 		points[2] = verts[2].pos;
+		ToScreenSpace(points[0]);
+		ToScreenSpace(points[1]);
+		ToScreenSpace(points[2]);
+		
+
+		randomcolor = (i/3) % 2;
 		//WireFrame(points[0], points[1], points[2]);
 		//BarRasterizeTriangle(points, Pixel{254, 254, 254, 254});
-		//RasterizeTriangle(points[0], points[1], points[2], Pixel{254, 254, 254, 254});
-		TriangleRaster(points[0], points[1], points[2], Pixel{rand()%255, rand()%255, rand()%255, 255});
+		//RasterizeTriangle(points[0], points[1]S, points[2], Pixel{254, 254, 254, 254});
+		TriangleRaster(points[0], points[1], points[2], Pixel{255*randomcolor,255*randomcolor,255*randomcolor,255}/*Pixel{rand()%255, rand()%255, rand()%255, 255}*/);
+		//NoCullBarRasterizeTriangle(points, Pixel{rand()%255, rand()%255, rand()%255, 255});
 	}
 
 	gamer += 0.05f;
-	
 
+	// in (-1,-1) to (1,1)
+	// vec3 center(0.0f, 0.0f);
+	// vec3 right(1.f, 0.0f);
+	// vec3 center1(0.0f, 0.5f);
+	// vec3 right1(1.f, 0.5f);
+	// ToScreenSpace(center);
+	// ToScreenSpace(right);
+	// ToScreenSpace(right1);
+	// ToScreenSpace(center1);
+	// DrawLine(center, right);
+	// DrawLine(center1, right1);
 	
 	
 
@@ -216,7 +256,7 @@ void Renderer::DrawLine(vec3 p1, vec3 p2)
     {
         
         if (isSteep)
-            PlacePixel(y, x, Pixel(0,255,0,255));
+            PlacePixel(y, x, Pixel(0,0,0,255));
         else
             PlacePixel(x, y, Pixel(0,255,0,255));
 
@@ -305,17 +345,6 @@ bool Renderer::LoadOBJModel(std::string filename)
 //bounding box barycoord raster
 void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 {
-	//convert from opengl-space to fb-space , half-pixel offset
-
-
-	for (size_t ii = 0; ii < 3; ii++)
-	{	
-		float temp_x, temp_y;
-		temp_x = (points[ii].x) * fb_width / 2.0f;
-		temp_y = (points[ii].y) * fb_height / 2.0f;
-		points[ii].x = temp_x;
-		points[ii].y = temp_y;
-	}
 
 	//setup Bounding box from vertices
 
@@ -331,6 +360,7 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 			boundingboxMAX[j] = std::min(clamped[j], std::max(boundingboxMAX[j], points[i][j]));
 		}
 	}
+	
 	
 	vec3 P;
 	//traverse the bounding box, place pixels inside of bctriangles
@@ -353,16 +383,42 @@ void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
 			if (depth_buffer[int(P.x + P.y * fb_width)] < P.z) // check depth, discard otherwise
 			{
 				depth_buffer[int(P.x + P.y * fb_width)] =  P.z;
-				colour.r *= P.z;
-				colour.g *= P.z;
-				colour.b *= P.z;
-				
 				PlacePixel(P.x, P.y, colour);
 			}
 			
 		}
 	}
 	
+}
+void Renderer::NoCullBarRasterizeTriangle(vec3* pts, Pixel colour)
+{
+	// for (size_t ii = 0; ii < 3; ii++)
+	// {	
+	// 	float temp_x, temp_y;
+	// 	temp_x = (pts[ii].x) * fb_width / 2.0f;
+	// 	temp_y = (pts[ii].y) * fb_height / 2.0f;
+	// 	pts[ii].x = temp_x;
+	// 	pts[ii].y = temp_y;
+	// }
+
+	vec3 bboxmin( std::numeric_limits<float>::max(),  std::numeric_limits<float>::max());
+    vec3 bboxmax(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
+    vec3 clamp(fb_width-1, fb_height-1);
+    for (int i=0; i<3; i++) {
+        for (int j=0; j<2; j++) {
+            bboxmin[j] = std::max(0.f,      std::min(bboxmin[j], pts[i][j]));
+            bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
+        }
+    }
+    vec3 P;
+    for (P.x=bboxmin.x; P.x<=bboxmax.x; P.x++) {
+        for (P.y=bboxmin.y; P.y<=bboxmax.y; P.y++) {
+            vec3 bc_screen  = barycentric(pts, P);
+            if (bc_screen.x<0 || bc_screen.y<0 || bc_screen.z<0) {continue; printf("gamer \n");}
+			
+                PlacePixel(P.x, P.y, colour);
+            }
+        }
 }
 
 
@@ -390,7 +446,7 @@ void Renderer::ClearFB()
 {
 	for (size_t i = 0; i < fb_height*fb_width; i++)
 	{
-		frame_buffer[i].r = 0;
+		frame_buffer[i].r = 254;
 		frame_buffer[i].g = 0; 
 		frame_buffer[i].b = 0; 
 		frame_buffer[i].a = 254; 
@@ -402,12 +458,12 @@ void Renderer::ClearFB()
 void Renderer::WireFrame(vec3 v0, vec3 v1, vec3 v2)
 {
 	
-	v0.x *= GetWidth() / 2;
-	v0.y *= GetHeight() / 2;
-	v1.x *= GetWidth() / 2;
-	v1.y *= GetHeight() / 2;
-	v2.x *= GetWidth() / 2;
-	v2.y *= GetHeight() / 2;
+	// v0.x *= GetWidth() / 2;
+	// v0.y *= GetHeight() / 2;
+	// v1.x *= GetWidth() / 2;
+	// v1.y *= GetHeight() / 2;
+	// v2.x *= GetWidth() / 2;
+	// v2.y *= GetHeight() / 2;
 	DrawLine(v0, v1);
 	DrawLine(v1, v2);
 	DrawLine(v2, v0);
@@ -417,6 +473,7 @@ void Renderer::WireFrame(vec3 v0, vec3 v1, vec3 v2)
 
 void Renderer::TriangleRaster(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color)
 {
+	
 	const vec3* p_v0 = &v0;
 	const vec3* p_v1 = &v1;
 	const vec3* p_v2 = &v2;
@@ -502,5 +559,45 @@ void Renderer::FlatTopTriangle(const vec3& v0, const vec3& v1, const vec3& v2, P
 void Renderer::FlatBottomTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color)
 {
 
+	// calc line slopes in screen-space
+	float m0 = (v1.x - v0.x) / (v1.y - v0.y);
+	float m1 = (v2.x - v0.x) / (v2.y - v0.y);
+
+	// start and end for scanlines
+	int scan_start = (int)ceil(v0.y - 0.5f);
+	int scan_end = (int)ceil(v2.y - 0.5f);
+
+	for (size_t y = scan_start; y < scan_end; y++)
+	{
+		// scanline start X
+		float px0 = m0 * (float(y) + 0.5f - v0.y) + v0.x;
+		float px1 = m1 * (float(y) + 0.5f - v0.y) + v1.x;
+
+		// start, end pixels
+		int pix_start = (int)ceil(px0 - 0.5f);
+		int pix_end = (int)ceil(px1 - 0.5f);
+
+		for (size_t x = pix_start; x < pix_end; x++)
+		{
+			
+			PlacePixel(x, y, color);
+		}
+		
+	}
 }
 
+void Renderer::PutPixel(unsigned int x, unsigned int y, Pixel pix)
+{
+	assert(x >= 0);
+	assert(y >= 0);
+	assert(x < fb_width);
+	assert(y < fb_height);
+	this->frame_buffer[y*fb_width + x] = pix;
+}
+
+vec3& Renderer::ToScreenSpace(vec3& vec)
+{
+	vec.x = (vec.x + 1.0f) * width_offset; 
+	vec.y = (vec.y + 1.0f) * height_offset; 
+	return vec;
+}
