@@ -44,7 +44,7 @@ Renderer::Renderer(const int width, const int height)
 		mat4 translation(	1,0,1,0,
 							0,1,0,0,
 							0,0,1,0,
-							0,0,-10,1
+							0,0,-5,1
 
 		);
 		mat4 scale(
@@ -64,7 +64,7 @@ Renderer::Renderer(const int width, const int height)
 		
 		mat4 model = scale * rot * translation;
 		//mat4 model = translation * rot * scale;
-		mat4 view = lookat(vec3(0,0,0), vec3(0,0,-1), vec3(0,1,0));
+		mat4 view = lookat(vec3(0,0,1), vec3(0,0,-1), vec3(0,1,0));
 		mat4 proj = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
 		//mat4 mvp = model * view * proj;
 		//t_pos = model * t_pos;
@@ -101,6 +101,7 @@ void Renderer::Draw(unsigned int handle)
 {
 	const BufferObject object = buffer_handles[handle];
 	int randomcolor;
+
 	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
 	{
 
@@ -116,20 +117,26 @@ void Renderer::Draw(unsigned int handle)
 		points[0] = verts[0].pos;
 		points[1] = verts[1].pos;
 		points[2] = verts[2].pos;
+
+		if (Cull(points[0],points[1],points[2]))
+			continue;
 		ToScreenSpace(points[0]);
 		ToScreenSpace(points[1]);
 		ToScreenSpace(points[2]);
+		// if (Cull(points[0],points[1],points[2]))
+		// 	continue;
 		
 
-		randomcolor = (i/3) % 2;
+		randomcolor = 12*(i+1);
 		//WireFrame(points[0], points[1], points[2]);
 		//BarRasterizeTriangle(points, Pixel{254, 254, 254, 254});
 		//RasterizeTriangle(points[0], points[1]S, points[2], Pixel{254, 254, 254, 254});
-		TriangleRaster(points[0], points[1], points[2], Pixel{255*randomcolor,255*randomcolor,255*randomcolor,255}/*Pixel{rand()%255, rand()%255, rand()%255, 255}*/);
+		//TriangleRaster(points[0], points[1], points[2], Pixel{255*randomcolor,255*randomcolor,255*randomcolor,255}/*Pixel{rand()%255, rand()%255, rand()%255, 255}*/);
+		TriangleRaster(points[0], points[1], points[2], Pixel{40*(randomcolor/12),randomcolor,randomcolor,255}/*Pixel{rand()%255, rand()%255, rand()%255, 255}*/);
 		//NoCullBarRasterizeTriangle(points, Pixel{rand()%255, rand()%255, rand()%255, 255});
 	}
 
-	gamer += 0.05f;
+	gamer += 0.01f;
 
 	// in (-1,-1) to (1,1)
 	// vec3 center(0.0f, 0.0f);
@@ -493,6 +500,7 @@ void Renderer::TriangleRaster(const vec3& v0, const vec3& v1, const vec3& v2, Pi
 		// sort vertices by x-coord
 		if (p_v1->x < p_v0->x)
 			std::swap(p_v0, p_v1);
+
 		FlatTopTriangle(*p_v0, *p_v1, *p_v2, color);
 	}
 	else if (p_v1->y == p_v2->y)	// bottom flat
@@ -500,6 +508,7 @@ void Renderer::TriangleRaster(const vec3& v0, const vec3& v1, const vec3& v2, Pi
 		// sort vertices by x-coord
 		if (p_v2->x < p_v1->x)
 			std::swap(p_v1, p_v2);
+		
 		FlatBottomTriangle(*p_v0, *p_v1, *p_v2, color);
 	}
 	else // any triangle
@@ -571,7 +580,7 @@ void Renderer::FlatBottomTriangle(const vec3& v0, const vec3& v1, const vec3& v2
 	{
 		// scanline start X
 		float px0 = m0 * (float(y) + 0.5f - v0.y) + v0.x;
-		float px1 = m1 * (float(y) + 0.5f - v0.y) + v1.x;
+		float px1 = m1 * (float(y) + 0.5f - v0.y) + v0.x;
 
 		// start, end pixels
 		int pix_start = (int)ceil(px0 - 0.5f);
@@ -600,4 +609,11 @@ vec3& Renderer::ToScreenSpace(vec3& vec)
 	vec.x = (vec.x + 1.0f) * width_offset; 
 	vec.y = (vec.y + 1.0f) * height_offset; 
 	return vec;
+}
+
+
+bool Renderer::Cull(vec3 v0, vec3 v1, vec3 v2) const
+{
+	// project on surface normal
+	return dot(cross((v1 - v0), (v2 - v0)), v0) > 0;
 }

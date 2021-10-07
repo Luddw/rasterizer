@@ -128,7 +128,8 @@ public:
 	void TriangleRaster(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color);
 	void NoCullBarRasterizeTriangle(vec3* pts, Pixel colour);
 
-	vec3&	 ToScreenSpace(vec3& vec);
+	vec3& ToScreenSpace(vec3& vec);
+	bool Cull(vec3 v0, vec3 v1, vec3 v2) const;
 private:
 	void FlatTopTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color);
 	void FlatBottomTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color);
