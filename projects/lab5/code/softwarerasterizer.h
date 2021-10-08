@@ -135,7 +135,7 @@ private:
 	void FlatBottomTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color);
 
 
-
+	Pixel colors[12];
 	std::map<unsigned int, BufferObject> buffer_handles;
 	int fb_height;
 	int fb_width;

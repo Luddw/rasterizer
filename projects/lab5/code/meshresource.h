@@ -15,7 +15,7 @@ struct Vertex
 	vec3 pos;
 	vec3 uv;
     vec3 normal;
-
+	
 };
 
 /** A class that represents a Mesh in OpenGL*/

@@ -35,6 +35,8 @@ struct vec3
     bool operator!=(vec3 const& rhs) { return (x != rhs.x && y != rhs.y && z != rhs.z); }
     bool operator!=(vec3 const& rhs) const { return (x != rhs.x && y != rhs.y && z != rhs.z); }
     float& operator[](unsigned int i) { assert(i >= 0 && i < 3); return v[i]; }
+
+    vec3 InterpolateFromTo(const vec3& from, const vec3& to, float alpha_linear) {return *this + (to - *this) * alpha_linear;}
 };
 
 // Get length of 3D vector
@@ -129,3 +131,6 @@ inline vec3 min(vec3 const a, vec3 const b)
     
     return newvect;
 }
+
+
+

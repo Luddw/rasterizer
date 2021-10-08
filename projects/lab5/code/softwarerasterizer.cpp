@@ -28,7 +28,13 @@ Renderer::Renderer(const int width, const int height)
 	SetupFrameBuffer(width, height);
 	projMat = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
 	viewMat = lookat(vec3(0,0,1.0f), vec3(0,0,-1), vec3(0,1,0));
-
+    
+	for (size_t i = 0; i < 12; i+=3)
+	{
+		colors[i]	= Pixel{254-i*4, 254, 254-i*4, 255};
+		colors[i+1] = Pixel{0+i*2, 254-i*2, 254, 255};
+		colors[i+2] = Pixel{0+i*3, i*4, i*5, 255};
+	}
 
 
 
@@ -44,7 +50,7 @@ Renderer::Renderer(const int width, const int height)
 		mat4 translation(	1,0,1,0,
 							0,1,0,0,
 							0,0,1,0,
-							0,0,-5,1
+							0,0,-3,1
 
 		);
 		mat4 scale(
@@ -102,6 +108,15 @@ void Renderer::Draw(unsigned int handle)
 	const BufferObject object = buffer_handles[handle];
 	int randomcolor;
 
+
+    Pixel colors[12];
+	for (size_t i = 0; i < 12; i+=3)
+	{
+		colors[i]	= Pixel{254-i*4, 254, 254-i*4, 255};
+		colors[i+1] = Pixel{0+i*2, 254-i*2, 254, 255};
+		colors[i+2] = Pixel{0+i*3, i*4, i*5, 255};
+	}
+	int j = 0;
 	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
 	{
 
@@ -123,6 +138,7 @@ void Renderer::Draw(unsigned int handle)
 		ToScreenSpace(points[0]);
 		ToScreenSpace(points[1]);
 		ToScreenSpace(points[2]);
+		
 		// if (Cull(points[0],points[1],points[2]))
 		// 	continue;
 		
@@ -132,7 +148,9 @@ void Renderer::Draw(unsigned int handle)
 		//BarRasterizeTriangle(points, Pixel{254, 254, 254, 254});
 		//RasterizeTriangle(points[0], points[1]S, points[2], Pixel{254, 254, 254, 254});
 		//TriangleRaster(points[0], points[1], points[2], Pixel{255*randomcolor,255*randomcolor,255*randomcolor,255}/*Pixel{rand()%255, rand()%255, rand()%255, 255}*/);
-		TriangleRaster(points[0], points[1], points[2], Pixel{40*(randomcolor/12),randomcolor,randomcolor,255}/*Pixel{rand()%255, rand()%255, rand()%255, 255}*/);
+		//TriangleRaster(points[0], points[1], points[2], Pixel{40*(randomcolor/12),randomcolor,randomcolor,255}/*Pixel{rand()%255, rand()%255, rand()%255, 255}*/);
+		TriangleRaster(points[0], points[1], points[2], colors[j]);
+		j++;
 		//NoCullBarRasterizeTriangle(points, Pixel{rand()%255, rand()%255, rand()%255, 255});
 	}
 
@@ -159,7 +177,7 @@ void Renderer::Draw(unsigned int handle)
 void Renderer::AddVertexBuffer(Vertex * buffer) 
 {
 	
-}
+}	
 
 void Renderer::AddIndexBuffer(unsigned int * buffer)
 {
