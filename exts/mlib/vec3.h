@@ -20,6 +20,7 @@ struct vec3
         // empty
     }
     vec3(float const x, float const y) : x(x), y(y), z(0) {};
+    vec3(vec4 v0) : x(v0.x), y(v0.y), z(v0.z) {};
 
     vec3 operator+(vec3 const& rhs) const { return {x + rhs.x, y + rhs.y, z + rhs.z}; }
     void operator+=(vec3 const& rhs) { x += rhs.x; y += rhs.y; z += rhs.z; }

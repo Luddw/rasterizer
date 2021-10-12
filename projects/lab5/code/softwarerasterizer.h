@@ -12,6 +12,8 @@
 #include "shaderresource.h"
 
 
+
+
 struct BufferObject
 {
 	
@@ -90,10 +92,24 @@ struct Line
 
 struct VertexOut
 {
-	vec3 pos;
+	vec4 pos;
 	vec3 uv;
+	vec3 normal;
 };
 
+struct Triangle
+{
+	Vertex v0;
+	Vertex v1;
+	Vertex v2;
+	bool culled;
+};
+
+struct ModelMesh
+{
+	std::vector<Triangle> faces;
+	std::vector<unsigned int> indexBuffer;
+};
 
 class Renderer
 {
@@ -104,13 +120,14 @@ public:
 	void AddVertexBuffer(Vertex* buffer);
 	void AddIndexBuffer(unsigned int* buffer);
 	const unsigned int AddBuffer(std::vector<Vertex> &vbuff, std::vector<unsigned int> &ibuff, unsigned int faces);
+	const unsigned int AddModelBuff(std::vector<Model> &vbuff, std::vector<unsigned int> &ibuff);
 	void SetupFrameBuffer(int width, int height);
 	Pixel * GetFramebuffer();
 	const int GetFramebufferSize();
 	void PlacePixel(unsigned int x, unsigned int y, Pixel pix);
 	void PutPixel(unsigned int x, unsigned int y, Pixel pix);
-	void SetVertextShader(std::function<void(Vertex&)> vertex_lambda);
-	void SetFragmentShader(std::function<Pixel(Vertex)> frag_lambda);
+	void SetVertextShader(std::function<VertexOut(Vertex)> vertex_lambda);
+	void SetFragmentShader(std::function<Pixel(VertexOut)> frag_lambda);
 	int GetHeight();
 	int GetWidth();
 	void Draw(unsigned int handle);
@@ -128,8 +145,8 @@ public:
 	void TriangleRaster(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color);
 	void NoCullBarRasterizeTriangle(vec3* pts, Pixel colour);
 
-	vec3& ToScreenSpace(vec3& vec);
-	bool Cull(vec3 v0, vec3 v1, vec3 v2) const;
+	vec4& ToScreenSpace(vec4& vec);
+	bool Cull(vec4 v0, vec4 v1, vec4 v2) const;
 private:
 	void FlatTopTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color);
 	void FlatBottomTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color);
@@ -141,12 +158,13 @@ private:
 	int fb_width;
 	Pixel * frame_buffer;
 	float* depth_buffer;
-	std::function<void(Vertex&)> vertex_shader; 
-	std::function<Pixel(Vertex)> frag_shader;
+	std::function<VertexOut(Vertex)> vertex_shader; 
+	std::function<Pixel(VertexOut)> frag_shader;
 	mat4 model_view_proj;
 	mat4 viewMat;
 	mat4 projMat;
 
+	std::map<unsigned int, Model> model_handles;
 	float width_offset;
 	float height_offset;
 	/*Texture fb_tex;

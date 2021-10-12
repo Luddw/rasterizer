@@ -18,6 +18,7 @@ struct Vertex
 	
 };
 
+
 /** A class that represents a Mesh in OpenGL*/
 class MeshResource
 {

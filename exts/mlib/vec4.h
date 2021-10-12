@@ -21,6 +21,7 @@ struct vec4
         // empty
     }
 
+
     vec4 operator+(vec4 const& rhs) const { return {x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w}; }
     void operator+=(vec4 const& rhs) { x += rhs.x; y += rhs.y; z += rhs.z; w += rhs.w; }
     vec4 operator-(vec4 const& rhs) const { return {x - rhs.x, y - rhs.y, z - rhs.z, w - rhs.w}; }

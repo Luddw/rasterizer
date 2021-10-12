@@ -29,24 +29,16 @@ Renderer::Renderer(const int width, const int height)
 	projMat = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
 	viewMat = lookat(vec3(0,0,1.0f), vec3(0,0,-1), vec3(0,1,0));
     
-	for (size_t i = 0; i < 12; i+=3)
-	{
-		colors[i]	= Pixel{254-i*4, 254, 254-i*4, 255};
-		colors[i+1] = Pixel{0+i*2, 254-i*2, 254, 255};
-		colors[i+2] = Pixel{0+i*3, i*4, i*5, 255};
-	}
+
+	
 
 
 
-	SetVertextShader([&](Vertex& inVert) {
+
+	SetVertextShader([&](Vertex inVert) -> VertexOut {
 		vec4 t_pos(inVert.pos.x, inVert.pos.y, inVert.pos.z, 1.0);
 		
-		// mat4 translation(	vec4(1,0,1,0),
-		// 					vec4(0,1,0,0),
-		// 					vec4(0,0,1,0),
-		// 					vec4(1,1,0,1)
 
-		// );
 		mat4 translation(	1,0,1,0,
 							0,1,0,0,
 							0,0,1,0,
@@ -66,34 +58,22 @@ Renderer::Renderer(const int width, const int height)
 		
 		mat4 rot = roty * rotx;
 		
-		//t_pos = rotationx(-pi/4.0f) * t_pos;
-		
 		mat4 model = scale * rot * translation;
-		//mat4 model = translation * rot * scale;
+
 		mat4 view = lookat(vec3(0,0,1), vec3(0,0,-1), vec3(0,1,0));
 		mat4 proj = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
-		//mat4 mvp = model * view * proj;
-		//t_pos = model * t_pos;
-		//t_pos = model * view * proj * t_pos;
-		// t_pos = mvp * t_pos;
+
 		t_pos = model * t_pos;
 		t_pos = transform(t_pos, view);
 		t_pos = transform(t_pos, proj);
 
-	    t_pos.x /= t_pos.w;
-	    t_pos.y /= t_pos.w;
-	    t_pos.z /= t_pos.w;
-		// t_pos.x += 1;    
-		// t_pos.y += 1;
-		//t_pos.z += 1.0f;
-		
+	    // t_pos.x /= t_pos.w;
+	    // t_pos.y /= t_pos.w;
+	    // t_pos.z /= t_pos.w;
 
-
-		// t_pos.x *= GetWidth() / 2.0f;
-		// t_pos.y *= GetHeight() / 2.0f;
-
-		inVert.pos = vec3(t_pos.x, t_pos.y, t_pos.z);
-
+		// inVert.pos = vec3(t_pos.x, t_pos.y, t_pos.z);
+		VertexOut out{t_pos, vec3(), vec3()};
+		return out;
 	});
 }
 
@@ -107,70 +87,60 @@ void Renderer::Draw(unsigned int handle)
 {
 	const BufferObject object = buffer_handles[handle];
 	int randomcolor;
-
-
-    Pixel colors[12];
-	for (size_t i = 0; i < 12; i+=3)
+	size_t vbuffsize = object.v_buffer.size();
+	VertexOut* outVert = new VertexOut[vbuffsize];
+	
+	for (size_t i = 0; i < object.i_buffer.size(); i++)
 	{
-		colors[i]	= Pixel{254-i*4, 254, 254-i*4, 255};
-		colors[i+1] = Pixel{0+i*2, 254-i*2, 254, 255};
-		colors[i+2] = Pixel{0+i*3, i*4, i*5, 255};
+		outVert[i] = vertex_shader(object.v_buffer[i]);
+
 	}
-	int j = 0;
 	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
 	{
-
-		vec3 points[3];
-		Vertex verts[3];
-		verts[0] = object.v_buffer[object.i_buffer[i]];
-		verts[1] = object.v_buffer[object.i_buffer[i+1]];
-		verts[2] = object.v_buffer[object.i_buffer[i+2]];
-		vertex_shader(verts[0]);
-		vertex_shader(verts[1]);
-		vertex_shader(verts[2]);
-
-		points[0] = verts[0].pos;
-		points[1] = verts[1].pos;
-		points[2] = verts[2].pos;
-
-		if (Cull(points[0],points[1],points[2]))
+		if (Cull(outVert[i].pos, outVert[i+1].pos, outVert[i+2].pos))
 			continue;
-		ToScreenSpace(points[0]);
-		ToScreenSpace(points[1]);
-		ToScreenSpace(points[2]);
-		
-		// if (Cull(points[0],points[1],points[2]))
-		// 	continue;
-		
 
-		randomcolor = 12*(i+1);
-		//WireFrame(points[0], points[1], points[2]);
-		//BarRasterizeTriangle(points, Pixel{254, 254, 254, 254});
-		//RasterizeTriangle(points[0], points[1]S, points[2], Pixel{254, 254, 254, 254});
-		//TriangleRaster(points[0], points[1], points[2], Pixel{255*randomcolor,255*randomcolor,255*randomcolor,255}/*Pixel{rand()%255, rand()%255, rand()%255, 255}*/);
-		//TriangleRaster(points[0], points[1], points[2], Pixel{40*(randomcolor/12),randomcolor,randomcolor,255}/*Pixel{rand()%255, rand()%255, rand()%255, 255}*/);
-		TriangleRaster(points[0], points[1], points[2], colors[j]);
-		j++;
-		//NoCullBarRasterizeTriangle(points, Pixel{rand()%255, rand()%255, rand()%255, 255});
+		randomcolor = (i/3) % 2;
+
+		ToScreenSpace(outVert[i].pos);
+		ToScreenSpace(outVert[i+1].pos);
+		ToScreenSpace(outVert[i+2].pos);
+
+		TriangleRaster(outVert[i].pos, outVert[i+1].pos, outVert[i+2].pos, Pixel{255 * randomcolor,255 * randomcolor,255 * randomcolor,255});
 	}
+	// for (size_t i = 0; i < object.i_buffer.size(); i+=3)
+	// {
 
+	// 	vec3 points[3];
+	// 	Vertex verts[3];
+	// 	verts[0] = object.v_buffer[object.i_buffer[i]];
+	// 	verts[1] = object.v_buffer[object.i_buffer[i+1]];
+	// 	verts[2] = object.v_buffer[object.i_buffer[i+2]];
+	// 	vertex_shader(verts[0]);
+	// 	vertex_shader(verts[1]);
+	// 	vertex_shader(verts[2]);
+
+	// 	points[0] = verts[0].pos;
+	// 	points[1] = verts[1].pos;
+	// 	points[2] = verts[2].pos;
+
+
+	// 	// ToScreenSpace(points[0]);
+	// 	// ToScreenSpace(points[1]);
+	// 	// ToScreenSpace(points[2]);
+		
+	// 	// if (Cull(points[0],points[1],points[2]))
+	// 	// 	continue;
+		
+
+	// 	//randomcolor = 12*(i+1);
+	// 	randomcolor = (i/3) % 2;
+	// 	TriangleRaster(points[0], points[1], points[2], Pixel{randomcolor * 255,randomcolor * 255,randomcolor * 255, 255});
+	// 	//j++;
+	// }
+
+	
 	gamer += 0.01f;
-
-	// in (-1,-1) to (1,1)
-	// vec3 center(0.0f, 0.0f);
-	// vec3 right(1.f, 0.0f);
-	// vec3 center1(0.0f, 0.5f);
-	// vec3 right1(1.f, 0.5f);
-	// ToScreenSpace(center);
-	// ToScreenSpace(right);
-	// ToScreenSpace(right1);
-	// ToScreenSpace(center1);
-	// DrawLine(center, right);
-	// DrawLine(center1, right1);
-	
-	
-
-	
 
 }
 
@@ -216,12 +186,12 @@ void Renderer::PlacePixel(unsigned int x, unsigned int y, Pixel pix)
 		this->frame_buffer[x + (y * fb_width)] = pix;
 }
 
-void Renderer::SetVertextShader(std::function<void(Vertex&)> vertex_lambda)
+void Renderer::SetVertextShader(std::function<VertexOut(Vertex)> vertex_lambda)
 {
 	this->vertex_shader = vertex_lambda;
 }
 
-void Renderer::SetFragmentShader(std::function<Pixel(Vertex)> frag_lambda)
+void Renderer::SetFragmentShader(std::function<Pixel(VertexOut)> frag_lambda)
 {
 	this->frag_shader = frag_lambda;
 }
@@ -354,12 +324,11 @@ bool Renderer::LoadOBJModel(std::string filename)
 
 	outIndices = loader.LoadedMeshes[0].Indices;
 	
+
 	for (size_t i = 0; i < loader.LoadedVertices.size(); i++)
 	{
-		//loader.LoadedVertices[i].pos *= 0.5f;
-		//loader.LoadedVertices[i].pos.z += 1.f;
-
 		outVerts.emplace_back(loader.LoadedVertices[i]);
+
 	}
 	
 	AddBuffer(outVerts, outIndices, 0);
@@ -622,16 +591,23 @@ void Renderer::PutPixel(unsigned int x, unsigned int y, Pixel pix)
 	this->frame_buffer[y*fb_width + x] = pix;
 }
 
-vec3& Renderer::ToScreenSpace(vec3& vec)
+vec4& Renderer::ToScreenSpace(vec4& vec)
 {
+	vec.x / vec.w;
+	vec.y / vec.w;
+	vec.z / vec.w;
+
 	vec.x = (vec.x + 1.0f) * width_offset; 
 	vec.y = (vec.y + 1.0f) * height_offset; 
 	return vec;
 }
 
 
-bool Renderer::Cull(vec3 v0, vec3 v1, vec3 v2) const
+bool Renderer::Cull(vec4 v0, vec4 v1, vec4 v2) const
 {
-	// project on surface normal
+	vec3 a(v0);
+	vec3 b(v1);
+	vec3 c(v2);
+	
 	return dot(cross((v1 - v0), (v2 - v0)), v0) > 0;
 }
