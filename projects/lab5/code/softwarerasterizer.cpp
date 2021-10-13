@@ -106,42 +106,11 @@ void Renderer::Draw(unsigned int handle)
 		ToScreenSpace(outVert[i+1].pos);
 		ToScreenSpace(outVert[i+2].pos);
 
-		TriangleRaster(outVert[i].pos, outVert[i+1].pos, outVert[i+2].pos, Pixel{255 * randomcolor,255 * randomcolor,255 * randomcolor,255});
+		TriangleRaster(outVert[i].pos, outVert[i+1].pos, outVert[i+2].pos, Pixel{255 * randomcolor,0,255 * randomcolor,255});
 	}
-	// for (size_t i = 0; i < object.i_buffer.size(); i+=3)
-	// {
-
-	// 	vec3 points[3];
-	// 	Vertex verts[3];
-	// 	verts[0] = object.v_buffer[object.i_buffer[i]];
-	// 	verts[1] = object.v_buffer[object.i_buffer[i+1]];
-	// 	verts[2] = object.v_buffer[object.i_buffer[i+2]];
-	// 	vertex_shader(verts[0]);
-	// 	vertex_shader(verts[1]);
-	// 	vertex_shader(verts[2]);
-
-	// 	points[0] = verts[0].pos;
-	// 	points[1] = verts[1].pos;
-	// 	points[2] = verts[2].pos;
-
-
-	// 	// ToScreenSpace(points[0]);
-	// 	// ToScreenSpace(points[1]);
-	// 	// ToScreenSpace(points[2]);
-		
-	// 	// if (Cull(points[0],points[1],points[2]))
-	// 	// 	continue;
-		
-
-	// 	//randomcolor = 12*(i+1);
-	// 	randomcolor = (i/3) % 2;
-	// 	TriangleRaster(points[0], points[1], points[2], Pixel{randomcolor * 255,randomcolor * 255,randomcolor * 255, 255});
-	// 	//j++;
-	// }
-
 	
 	gamer += 0.01f;
-
+	delete outVert;
 }
 
 void Renderer::AddVertexBuffer(Vertex * buffer) 
@@ -337,53 +306,53 @@ bool Renderer::LoadOBJModel(std::string filename)
 	return true;
 }
 //bounding box barycoord raster
-void Renderer::BarRasterizeTriangle(vec3* points, Pixel colour)
-{
+// void Renderer::BarRasterizeTriangle(VertexOut* points, Pixel colour)
+// {
 
-	//setup Bounding box from vertices
+// 	//setup Bounding box from vertices
 
-	vec3 boundingboxMIN(fb_width - 1, fb_height - 1);
-	vec3 boundingboxMAX(0, 0);
-	vec3 clamped(fb_width -1, fb_height - 1);
-	for (size_t i = 0; i < 3; i++)
-	{
-		for (size_t j = 0; j < 2; j++)
-		{
-			// TODO: static cast, ugly --> change matlib in future for different vec data-types i.e float, int
-			boundingboxMIN[j] = std::max(0.0f, std::min(boundingboxMIN[j], points[i][j]));
-			boundingboxMAX[j] = std::min(clamped[j], std::max(boundingboxMAX[j], points[i][j]));
-		}
-	}
+// 	vec3 boundingboxMIN(fb_width - 1, fb_height - 1);
+// 	vec3 boundingboxMAX(0, 0);
+// 	vec3 clamped(fb_width -1, fb_height - 1);
+// 	for (size_t i = 0; i < 3; i++)
+// 	{
+// 		for (size_t j = 0; j < 2; j++)
+// 		{
+// 			// TODO: static cast, ugly --> change matlib in future for different vec data-types i.e float, int
+// 			boundingboxMIN[j] = std::max(0.0f, std::min(boundingboxMIN[j], points[i][j]));
+// 			boundingboxMAX[j] = std::min(clamped[j], std::max(boundingboxMAX[j], points[i][j]));
+// 		}
+// 	}
 	
 	
-	vec3 P;
-	//traverse the bounding box, place pixels inside of bctriangles
-	// "for each pixel ..."	
-	for (P.x = boundingboxMIN.x; P.x <= boundingboxMAX.x; P.x++)
-	{
-		for (P.y = boundingboxMIN.y; P.y <= boundingboxMAX.y; P.y++)
-		{
-			vec3 screenBarycentric = barycentric(points, P);
+// 	vec3 P;
+// 	//traverse the bounding box, place pixels inside of bctriangles
+// 	// "for each pixel ..."	
+// 	for (P.x = boundingboxMIN.x; P.x <= boundingboxMAX.x; P.x++)
+// 	{
+// 		for (P.y = boundingboxMIN.y; P.y <= boundingboxMAX.y; P.y++)
+// 		{
+// 			vec3 screenBarycentric = barycentric(points, P);
 
-			if (screenBarycentric.x < 0 || screenBarycentric.y < 0 || screenBarycentric.z < 0) // if clip
-				continue;
+// 			if (screenBarycentric.x < 0 || screenBarycentric.y < 0 || screenBarycentric.z < 0) // if clip
+// 				continue;
 				
-			P.z = 0;
-			for (size_t i=0; i < 3; i++)	//multiply each points Z-value with the bc-coord
-			{
-				P.z += points[i][2] * screenBarycentric[i];
-			}
+// 			P.z = 0;
+// 			for (size_t i=0; i < 3; i++)	//multiply each points Z-value with the bc-coord
+// 			{
+// 				P.z += points[i][2] * screenBarycentric[i];
+// 			}
 
-			if (depth_buffer[int(P.x + P.y * fb_width)] < P.z) // check depth, discard otherwise
-			{
-				depth_buffer[int(P.x + P.y * fb_width)] =  P.z;
-				PlacePixel(P.x, P.y, colour);
-			}
+// 			if (depth_buffer[int(P.x + P.y * fb_width)] < P.z) // check depth, discard otherwise
+// 			{
+// 				depth_buffer[int(P.x + P.y * fb_width)] =  P.z;
+// 				PlacePixel(P.x, P.y, colour);
+// 			}
 			
-		}
-	}
+// 		}
+// 	}
 	
-}
+// }
 void Renderer::NoCullBarRasterizeTriangle(vec3* pts, Pixel colour)
 {
 	// for (size_t ii = 0; ii < 3; ii++)
@@ -563,6 +532,8 @@ void Renderer::FlatBottomTriangle(const vec3& v0, const vec3& v1, const vec3& v2
 	int scan_start = (int)ceil(v0.y - 0.5f);
 	int scan_end = (int)ceil(v2.y - 0.5f);
 
+	
+
 	for (size_t y = scan_start; y < scan_end; y++)
 	{
 		// scanline start X
@@ -575,7 +546,6 @@ void Renderer::FlatBottomTriangle(const vec3& v0, const vec3& v1, const vec3& v2
 
 		for (size_t x = pix_start; x < pix_end; x++)
 		{
-			
 			PlacePixel(x, y, color);
 		}
 		

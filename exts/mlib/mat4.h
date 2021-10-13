@@ -453,20 +453,7 @@ lookat(vec3 const & eye, vec3 const & target, vec3 const & upvect)
 inline vec3
 barycentric(vec3* points, vec3 P)
 {
-    vec3 result[2];
 
-    for (size_t i = 2; i--;)
-    {
-        result[i][0] = points[2][i] - points[0][i];
-        result[i][1] = points[1][i] - points[0][i];
-        result[i][2] = points[0][i] - P[i];
-    }
-    vec3 w = cross(result[0], result[1]);
-    if (std::abs(w[2]) > 1e-2)
-        return vec3(1.0f - (w.x + w.y) / w.z, w.y / w.z, w.x / w.z);
-    return vec3(-1, 1, 1);
-    
-    //calc u from the formula.
     vec3 u = cross(
         vec3(points[2][0] - points[0][0], points[1][0] - points[0][0], points[0][0] - P[0]), // u
         vec3(points[2][1] - points[0][1], points[1][1] - points[0][1], points[0][1] - P[1])  // v
