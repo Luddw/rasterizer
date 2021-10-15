@@ -88,3 +88,8 @@ void Texture::Unbind()
 {
 	glBindTexture(GL_TEXTURE_2D,0);	
 }
+
+Pixel Texture::GetColor(unsigned int x, unsigned int y)
+{
+	return Pixel();
+}

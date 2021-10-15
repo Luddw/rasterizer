@@ -460,10 +460,10 @@ barycentric(vec3* points, vec3 P)
     );
 
     // edge-case in case of degen-triangle
-    if (std::abs(u[2]) > 1e-2)
-        return vec3(1.0f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+    if (std::abs(u[2]) < 1)
+        return vec3(-1,1,1);
         
-    return vec3(-1,1,1);
+    return vec3(1.0f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
 
 }
 inline mat4 mat4::operator*(mat4 const& rhs) const {return multiply(*this, rhs);}

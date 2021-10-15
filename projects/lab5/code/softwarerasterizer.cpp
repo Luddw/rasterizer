@@ -134,8 +134,11 @@ void Renderer::SetupFrameBuffer(int width, int height)
 {
 	frame_buffer = new Pixel[width * height];
 	depth_buffer = new float[width * height];
-	for (size_t i = width*height; i--; depth_buffer[i] = -std::numeric_limits<float>::max());
-
+	for (size_t i = 0; i < width * height; i++)
+	{
+		depth_buffer[i] = -std::numeric_limits<float>::max();
+	}
+	
 	
 }
 
@@ -415,6 +418,11 @@ void Renderer::ClearFB()
 		frame_buffer[i].a = 254; 
 
 	}
+	for (size_t i = 0; i < fb_width * fb_height; i++)
+	{
+		depth_buffer[i] = -std::numeric_limits<float>::max();
+	}
+
 
 	
 }
@@ -500,20 +508,32 @@ void Renderer::FlatTopTriangle(const vec3& v0, const vec3& v1, const vec3& v2, P
 	int scan_start = (int)ceil(v0.y - 0.5f);
 	int scan_end = (int)ceil(v2.y - 0.5f);
 
-	for (size_t y = scan_start; y < scan_end; y++)
+	vec3 P;
+	for (P.y = scan_start; P.y < scan_end; P.y++)
 	{
 		// scanline start X
-		float px0 = m0 * (float(y) + 0.5f - v0.y) + v0.x;
-		float px1 = m1 * (float(y) + 0.5f - v1.y) + v1.x;
+		float px0 = m0 * (float(P.y) + 0.5f - v0.y) + v0.x;
+		float px1 = m1 * (float(P.y) + 0.5f - v1.y) + v1.x;
 
 		// start, end pixels
 		int pix_start = (int)ceil(px0 - 0.5f);
 		int pix_end = (int)ceil(px1 - 0.5f);
 
-		for (size_t x = pix_start; x < pix_end; x++)
+		for (P.x = pix_start; P.x < pix_end; P.x++)
 		{
+			vec3 pts[3] = {v0,v1,v2};
+			vec3 weights = barycentric(pts, P);
+			// if (weights.x < 0 || weights.y < 0 || weights.z < 0)
+			// 	continue;
 			
-			PlacePixel(x, y, color);
+			P.z = 0;
+			P.z +=  v0.z * weights.x + v1.z * weights.y + v2.z * weights.z;
+			if (depth_buffer[int(P.x + P.y * fb_width)] < P.z)
+			{
+				depth_buffer[int(P.x + P.y * fb_width)] = P.z;
+				PlacePixel(P.x, P.y, color);
+			}
+			
 		}
 		
 	}
@@ -533,20 +553,32 @@ void Renderer::FlatBottomTriangle(const vec3& v0, const vec3& v1, const vec3& v2
 	int scan_end = (int)ceil(v2.y - 0.5f);
 
 	
-
-	for (size_t y = scan_start; y < scan_end; y++)
+	vec3 P;
+	for (P.y = scan_start; P.y < scan_end; P.y++)
 	{
 		// scanline start X
-		float px0 = m0 * (float(y) + 0.5f - v0.y) + v0.x;
-		float px1 = m1 * (float(y) + 0.5f - v0.y) + v0.x;
+		float px0 = m0 * (float(P.y) + 0.5f - v0.y) + v0.x;
+		float px1 = m1 * (float(P.y) + 0.5f - v0.y) + v0.x;
 
 		// start, end pixels
 		int pix_start = (int)ceil(px0 - 0.5f);
 		int pix_end = (int)ceil(px1 - 0.5f);
 
-		for (size_t x = pix_start; x < pix_end; x++)
+		for (P.x = pix_start; P.x < pix_end; P.x++)
 		{
-			PlacePixel(x, y, color);
+			vec3 pts[3] = {v0,v1,v2};
+			vec3 weights = barycentric(pts, P);
+			// if (weights.x < 0 || weights.y < 0 || weights.z < 0)
+			// 	continue;
+			
+			P.z = 0;
+			P.z +=  v0.z * weights.x + v1.z * weights.y + v2.z * weights.z;
+			if (depth_buffer[int(P.x + P.y * fb_width)] < P.z)
+			{
+				depth_buffer[int(P.x + P.y * fb_width)] = P.z;
+				PlacePixel(P.x, P.y, color);
+			}
+			
 		}
 		
 	}
