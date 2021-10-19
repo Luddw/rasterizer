@@ -1,7 +1,7 @@
 #pragma once
 #include <cmath>
 #include <assert.h>
-
+#include "vec4.h"
 struct vec3
 {
     union {
@@ -20,6 +20,7 @@ struct vec3
         // empty
     }
     vec3(float const x, float const y) : x(x), y(y), z(0) {};
+
     vec3(vec4 v0) : x(v0.x), y(v0.y), z(v0.z) {};
 
     vec3 operator+(vec3 const& rhs) const { return {x + rhs.x, y + rhs.y, z + rhs.z}; }
@@ -37,7 +38,10 @@ struct vec3
     bool operator!=(vec3 const& rhs) const { return (x != rhs.x && y != rhs.y && z != rhs.z); }
     float& operator[](unsigned int i) { assert(i >= 0 && i < 3); return v[i]; }
 
-    vec3 InterpolateFromTo(const vec3& from, const vec3& to, float alpha_linear) {return *this + (to - *this) * alpha_linear;}
+    vec3 interpolate(const vec3 target, float alpha) const 
+    {
+        return *this + (target - *this) * alpha;
+    }
 };
 
 // Get length of 3D vector
@@ -132,6 +136,8 @@ inline vec3 min(vec3 const a, vec3 const b)
     
     return newvect;
 }
+
+
 
 
 

@@ -28,11 +28,16 @@ struct vec4
     void operator-=(vec4 const& rhs) { x -= rhs.x; y -= rhs.y; z -= rhs.z; w -= rhs.w; }
     vec4 operator-() const { return {-x, -y, -z, -w}; }
     vec4 operator*(float const c) const { return {x * c, y * c, z * c, w * c}; }
+    vec4 operator*(float c) { return {x * c, y * c, z * c, w * c}; }
     void operator*=(float const c) { x *= c; y *= c; z *= c; w *= c; }
     void operator/=(float const c) { x /= c; y /= c; z /= c; w /= c; }
     bool operator==(vec4 const& rhs) { return (x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w); }
     bool operator!=(vec4 const& rhs) { return (x != rhs.x && y != rhs.y && z != rhs.z && w != rhs.w); }
     float& operator[](unsigned int i) { assert(i >= 0 && i < 4); return v[i]; }
+    vec4 interpolate(const vec4 target, float alpha) const
+    {
+        return *this + (target - *this) * alpha;
+    }
 };
 
 // Get length of 3D vector
@@ -80,3 +85,5 @@ inline vec4 reflect(vec4 const v, vec4 const n)
 {
     return v - n * (2 * dot(v,n));
 }
+
+

@@ -2,6 +2,9 @@
 #include <GL/glew.h>
 #include <vector>
 #include <string>
+#include "rasterdata.h"
+#include "vec3.h"
+
 class Texture
 {
 private:
@@ -22,4 +25,5 @@ public:
 	int GetHeight() const { return height;}
 	int Getbpp() const { return bpp;}
 	void Update(unsigned width, unsigned height,void* data);
+	Pixel GetColor(vec3& uvCoord);
 };

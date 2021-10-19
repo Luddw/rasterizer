@@ -10,7 +10,7 @@
 #include "texture.h"
 #include "modelraster.h"
 #include "shaderresource.h"
-
+#include "rasterdata.h"
 
 
 
@@ -29,17 +29,16 @@ struct BufferObject
 };		
 
 
-struct Pixel
-{
-	unsigned char r = 0;
-	unsigned char g = 0;
-	unsigned char b = 0;
-	unsigned char a = 255;
-	Pixel(unsigned char red, unsigned char green, unsigned char blu, unsigned char alf) : r(red), g(green), b(blu), a(alf) {};
-	Pixel() {};
+// struct Pixel
+// {
+// 	unsigned char r = 0;
+// 	unsigned char g = 0;
+// 	unsigned char b = 0;
+// 	unsigned char a = 255;
+// 	Pixel(unsigned char red, unsigned char green, unsigned char blu, unsigned char alf) : r(red), g(green), b(blu), a(alf) {};
+// 	Pixel() {};
 
-};
-
+// };
 
 
 struct Point
@@ -95,6 +94,15 @@ struct VertexOut
 	vec4 pos;
 	vec3 uv;
 	vec3 normal;
+	VertexOut Interpolate(const VertexOut& target, float alpha) const
+	{
+		return {
+				pos.interpolate(target.pos, alpha),
+				uv.interpolate(target.uv, alpha),
+				vec3()
+		};
+
+	}
 };
 
 struct Triangle
@@ -132,7 +140,7 @@ public:
 	int GetWidth();
 	void Draw(unsigned int handle);
 	void RasterizeTriangle(vec3 v0, vec3 v1, vec3 v2, Pixel colour);
-	void BarRasterizeTriangle(vec3* points, Pixel colour);
+	void BarRasterizeTriangle(VertexOut* points, Pixel colour);
 	void SetModelViewProjectionMatrix(const mat4 &mvp);
     void DrawLine(vec3 p1, vec3 p2);
 	void SetTexture(const Texture &tex);
@@ -142,14 +150,14 @@ public:
 	mat4 GetMVP();
 	void ClearFB();
 	void WireFrame(vec3 v0, vec3 v1, vec3 v2);
-	void TriangleRaster(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color);
+	void TriangleRaster(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color);
 	void NoCullBarRasterizeTriangle(vec3* pts, Pixel colour);
 
 	vec4& ToScreenSpace(vec4& vec);
 	bool Cull(vec4 v0, vec4 v1, vec4 v2) const;
 private:
-	void FlatTopTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color);
-	void FlatBottomTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color);
+	void FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color);
+	void FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color);
 
 
 	Pixel colors[12];

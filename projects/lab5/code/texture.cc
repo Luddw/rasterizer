@@ -1,6 +1,8 @@
 #include "texture.h"
 #include <iostream>
 #include <stb_image.h>
+
+
 Texture::Texture(const std::string &path) :  tex_handle(0),filepath(path), localbuf(nullptr),widht(0),height(0),bpp(0)
 {
 	//stbi_set_flip_vertically_on_load(true);
@@ -89,7 +91,17 @@ void Texture::Unbind()
 	glBindTexture(GL_TEXTURE_2D,0);	
 }
 
-Pixel Texture::GetColor(unsigned int x, unsigned int y)
+Pixel Texture::GetColor(vec3& uvCoord)
 {
-	return Pixel();
+	// fetch position in the texture's buffer, offsetted by bits per pixel
+	const unsigned int x = uvCoord.x * widht;
+	const unsigned int y = uvCoord.y * height;
+	const unsigned char* imageColor = &localbuf[(x + y * widht) * bpp];
+	
+	return {
+		imageColor[0],
+		imageColor[1],
+		imageColor[2],
+		bpp == 4 ? imageColor[4] : (unsigned char)0xFF
+	};
 }

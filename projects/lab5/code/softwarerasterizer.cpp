@@ -42,17 +42,23 @@ Renderer::Renderer(const int width, const int height)
 		mat4 translation(	1,0,1,0,
 							0,1,0,0,
 							0,0,1,0,
-							0,0,-3,1
+							0,0,-1,1
 
 		);
+		// mat4 scale(
+
+		// 					vec4(0.25,0,0,0),
+		// 					vec4(0,0.25,0,0),
+		// 					vec4(0,0,0.25,0),
+		// 					vec4(0,0,0,1)
+		// );
 		mat4 scale(
 
-							vec4(0.25,0,0,0),
-							vec4(0,0.25,0,0),
-							vec4(0,0,0.25,0),
+							vec4(0.5,0,0,0),
+							vec4(0,0.5,0,0),
+							vec4(0,0,0.5,0),
 							vec4(0,0,0,1)
 		);
-
 		mat4 roty = rotationy(gamer);
 		mat4 rotx = rotationx(gamer);
 		
@@ -105,8 +111,9 @@ void Renderer::Draw(unsigned int handle)
 		ToScreenSpace(outVert[i].pos);
 		ToScreenSpace(outVert[i+1].pos);
 		ToScreenSpace(outVert[i+2].pos);
-
-		TriangleRaster(outVert[i].pos, outVert[i+1].pos, outVert[i+2].pos, Pixel{255 * randomcolor,0,255 * randomcolor,255});
+		//VertexOut asd[3] = {outVert[i], outVert[i+1], outVert[i+2]};
+		//BarRasterizeTriangle(asd, Pixel{255 * randomcolor,0,255 * randomcolor,255});
+		TriangleRaster(outVert[i], outVert[i+1], outVert[i+2]~, Pixel{255 * randomcolor,0,255 * randomcolor,255});
 	}
 	
 	gamer += 0.01f;
@@ -308,7 +315,7 @@ bool Renderer::LoadOBJModel(std::string filename)
 	
 	return true;
 }
-//bounding box barycoord raster
+// bounding box barycoord raster
 // void Renderer::BarRasterizeTriangle(VertexOut* points, Pixel colour)
 // {
 
@@ -356,6 +363,7 @@ bool Renderer::LoadOBJModel(std::string filename)
 // 	}
 	
 // }
+
 void Renderer::NoCullBarRasterizeTriangle(vec3* pts, Pixel colour)
 {
 	// for (size_t ii = 0; ii < 3; ii++)
@@ -442,35 +450,35 @@ void Renderer::WireFrame(vec3 v0, vec3 v1, vec3 v2)
 
 
 
-void Renderer::TriangleRaster(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color)
+void Renderer::TriangleRaster(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color)
 {
 	
-	const vec3* p_v0 = &v0;
-	const vec3* p_v1 = &v1;
-	const vec3* p_v2 = &v2;
-
+	const VertexOut* p_v0 = &v0;
+	const VertexOut* p_v1 = &v1;
+	const VertexOut* p_v2 = &v2;
+	
 	// sort height of vertices
-	if (p_v1->y < p_v0->y)
+	if (p_v1->pos.y < p_v0->pos.y)
 		std::swap(p_v0, p_v1);
-	if (p_v2->y < p_v1->y)
+	if (p_v2->pos.y < p_v1->pos.y)
 		std::swap(p_v1, p_v2);
-	if (p_v1->y < p_v0->y)
+	if (p_v1->pos.y < p_v0->pos.y)
 		std::swap(p_v0, p_v1);
 	
 	// identify the type of triangle, top-  bot- right- left- major
 
-	if (p_v0->y == p_v1->y)	// top flat
+	if (p_v0->pos.y == p_v1->pos.y)	// top flat
 	{
 		// sort vertices by x-coord
-		if (p_v1->x < p_v0->x)
+		if (p_v1->pos.x < p_v0->pos.x)
 			std::swap(p_v0, p_v1);
 
 		FlatTopTriangle(*p_v0, *p_v1, *p_v2, color);
 	}
-	else if (p_v1->y == p_v2->y)	// bottom flat
+	else if (p_v1->pos.y == p_v2->pos.y)	// bottom flat
 	{
 		// sort vertices by x-coord
-		if (p_v2->x < p_v1->x)
+		if (p_v2->pos.x < p_v1->pos.x)
 			std::swap(p_v1, p_v2);
 		
 		FlatBottomTriangle(*p_v0, *p_v1, *p_v2, color);
@@ -478,42 +486,42 @@ void Renderer::TriangleRaster(const vec3& v0, const vec3& v1, const vec3& v2, Pi
 	else // any triangle
 	{
 		// find top bottom split vertex
-		float k_split = (p_v1->y - p_v0->y) / (p_v2->y - p_v0->y);
-		vec3 vK = *p_v0 + (*p_v2 - *p_v0) * k_split;
+		float k_split = (p_v1->pos.y - p_v0->pos.y) / (p_v2->pos.y - p_v0->pos.y);
+		VertexOut vk = p_v0->Interpolate(*p_v2, k_split);
 
-		if (p_v1->x < vK.x) // right major
+		if (p_v1->pos.x < vk.pos.x) // right major
 		{
-			FlatBottomTriangle(*p_v0, *p_v1, vK, color);
-			FlatTopTriangle(*p_v1, vK, *p_v2, color);
+			FlatBottomTriangle(*p_v0, *p_v1, vk, color);
+			FlatTopTriangle(*p_v1, vk, *p_v2, color);
 		}
 		else	// left major
 		{
-			FlatBottomTriangle(*p_v0, vK, *p_v1, color);
-			FlatTopTriangle(vK, *p_v1, *p_v2, color);
+			FlatBottomTriangle(*p_v0, vk, *p_v1, color);
+			FlatTopTriangle(vk, *p_v1, *p_v2, color);
 		}
 		
 	}
 	
 }
 
-void Renderer::FlatTopTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color)
+void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color)
 {
 
 
 	// calc line slopes in screen-space
-	float m0 = (v2.x - v0.x) / (v2.y - v0.y);
-	float m1 = (v2.x - v1.x) / (v2.y - v1.y);
+	float m0 = (v2.pos.x - v0.pos.x) / (v2.pos.y - v0.pos.y);
+	float m1 = (v2.pos.x - v1.pos.x) / (v2.pos.y - v1.pos.y);
 
 	// start and end for scanlines
-	int scan_start = (int)ceil(v0.y - 0.5f);
-	int scan_end = (int)ceil(v2.y - 0.5f);
+	int scan_start = (int)ceil(v0.pos.y - 0.5f);
+	int scan_end = (int)ceil(v2.pos.y - 0.5f);
 
 	vec3 P;
 	for (P.y = scan_start; P.y < scan_end; P.y++)
 	{
 		// scanline start X
-		float px0 = m0 * (float(P.y) + 0.5f - v0.y) + v0.x;
-		float px1 = m1 * (float(P.y) + 0.5f - v1.y) + v1.x;
+		float px0 = m0 * (float(P.y) + 0.5f - v0.pos.y) + v0.pos.x;
+		float px1 = m1 * (float(P.y) + 0.5f - v1.pos.y) + v1.pos.x;
 
 		// start, end pixels
 		int pix_start = (int)ceil(px0 - 0.5f);
@@ -521,13 +529,13 @@ void Renderer::FlatTopTriangle(const vec3& v0, const vec3& v1, const vec3& v2, P
 
 		for (P.x = pix_start; P.x < pix_end; P.x++)
 		{
-			vec3 pts[3] = {v0,v1,v2};
+			vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
 			vec3 weights = barycentric(pts, P);
 			// if (weights.x < 0 || weights.y < 0 || weights.z < 0)
 			// 	continue;
 			
 			P.z = 0;
-			P.z +=  v0.z * weights.x + v1.z * weights.y + v2.z * weights.z;
+			P.z +=  v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
 			if (depth_buffer[int(P.x + P.y * fb_width)] < P.z)
 			{
 				depth_buffer[int(P.x + P.y * fb_width)] = P.z;
@@ -541,24 +549,24 @@ void Renderer::FlatTopTriangle(const vec3& v0, const vec3& v1, const vec3& v2, P
 
 }
 
-void Renderer::FlatBottomTriangle(const vec3& v0, const vec3& v1, const vec3& v2, Pixel color)
+void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color)
 {
 
 	// calc line slopes in screen-space
-	float m0 = (v1.x - v0.x) / (v1.y - v0.y);
-	float m1 = (v2.x - v0.x) / (v2.y - v0.y);
+	float m0 = (v1.pos.x - v0.pos.x) / (v1.pos.y - v0.pos.y);
+	float m1 = (v2.pos.x - v0.pos.x) / (v2.pos.y - v0.pos.y);
 
 	// start and end for scanlines
-	int scan_start = (int)ceil(v0.y - 0.5f);
-	int scan_end = (int)ceil(v2.y - 0.5f);
+	int scan_start = (int)ceil(v0.pos.y - 0.5f);
+	int scan_end = (int)ceil(v2.pos.y - 0.5f);
 
 	
 	vec3 P;
 	for (P.y = scan_start; P.y < scan_end; P.y++)
 	{
 		// scanline start X
-		float px0 = m0 * (float(P.y) + 0.5f - v0.y) + v0.x;
-		float px1 = m1 * (float(P.y) + 0.5f - v0.y) + v0.x;
+		float px0 = m0 * (float(P.y) + 0.5f - v0.pos.y) + v0.pos.x;
+		float px1 = m1 * (float(P.y) + 0.5f - v0.pos.y) + v0.pos.x;
 
 		// start, end pixels
 		int pix_start = (int)ceil(px0 - 0.5f);
@@ -566,13 +574,13 @@ void Renderer::FlatBottomTriangle(const vec3& v0, const vec3& v1, const vec3& v2
 
 		for (P.x = pix_start; P.x < pix_end; P.x++)
 		{
-			vec3 pts[3] = {v0,v1,v2};
+			vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
 			vec3 weights = barycentric(pts, P);
-			// if (weights.x < 0 || weights.y < 0 || weights.z < 0)
+			// if (weights.pos.x < 0 || weights.pos.y < 0 || weights.pos.z < 0)
 			// 	continue;
 			
 			P.z = 0;
-			P.z +=  v0.z * weights.x + v1.z * weights.y + v2.z * weights.z;
+			P.z +=  v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
 			if (depth_buffer[int(P.x + P.y * fb_width)] < P.z)
 			{
 				depth_buffer[int(P.x + P.y * fb_width)] = P.z;
