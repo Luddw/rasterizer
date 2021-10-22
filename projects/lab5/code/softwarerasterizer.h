@@ -135,7 +135,7 @@ public:
 	void PlacePixel(unsigned int x, unsigned int y, Pixel pix);
 	void PutPixel(unsigned int x, unsigned int y, Pixel pix);
 	void SetVertextShader(std::function<VertexOut(Vertex)> vertex_lambda);
-	void SetFragmentShader(std::function<Pixel(VertexOut)> frag_lambda);
+	void SetFragmentShader(std::function<Pixel(VertexOut, Texture)> frag_lambda);
 	int GetHeight();
 	int GetWidth();
 	void Draw(unsigned int handle);
@@ -143,7 +143,6 @@ public:
 	void BarRasterizeTriangle(VertexOut* points, Pixel colour);
 	void SetModelViewProjectionMatrix(const mat4 &mvp);
     void DrawLine(vec3 p1, vec3 p2);
-	void SetTexture(const Texture &tex);
 	void SaveFB();
 	bool LoadOBJModel(std::string filename);
 	void UpdateQuadTex(GLuint handle);
@@ -152,14 +151,15 @@ public:
 	void WireFrame(vec3 v0, vec3 v1, vec3 v2);
 	void TriangleRaster(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color);
 	void NoCullBarRasterizeTriangle(vec3* pts, Pixel colour);
-
 	vec4& ToScreenSpace(vec4& vec);
 	bool Cull(vec4 v0, vec4 v1, vec4 v2) const;
+	void SetTexture(Texture tex);
 private:
 	void FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color);
 	void FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color);
+	vec3 Barycentric(vec3* points, vec3 P);
 
-
+private:
 	Pixel colors[12];
 	std::map<unsigned int, BufferObject> buffer_handles;
 	int fb_height;
@@ -167,7 +167,7 @@ private:
 	Pixel * frame_buffer;
 	float* depth_buffer;
 	std::function<VertexOut(Vertex)> vertex_shader; 
-	std::function<Pixel(VertexOut)> frag_shader;
+	std::function<Pixel(VertexOut, Texture)> frag_shader;
 	mat4 model_view_proj;
 	mat4 viewMat;
 	mat4 projMat;
@@ -175,9 +175,9 @@ private:
 	std::map<unsigned int, Model> model_handles;
 	float width_offset;
 	float height_offset;
-	/*Texture fb_tex;
-	ShaderResource fb_shader;
-	MeshResource fb_mesh;*/
+	Texture texture;
+	// ShaderResource fb_shader;S
+	// MeshResource fb_mesh;*/
 	void InitResources();
 };
 

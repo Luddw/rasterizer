@@ -72,14 +72,15 @@ Renderer::Renderer(const int width, const int height)
 		t_pos = model * t_pos;
 		t_pos = transform(t_pos, view);
 		t_pos = transform(t_pos, proj);
-
-	    // t_pos.x /= t_pos.w;
-	    // t_pos.y /= t_pos.w;
-	    // t_pos.z /= t_pos.w;
-
-		// inVert.pos = vec3(t_pos.x, t_pos.y, t_pos.z);
 		VertexOut out{t_pos, vec3(), vec3()};
 		return out;
+	});
+
+	SetFragmentShader([&](VertexOut inVert, Texture tex) -> Pixel {
+		Pixel outColor;
+			
+		outColor = tex.GetColor(inVert.uv);	
+		return outColor;
 	});
 }
 
@@ -113,7 +114,7 @@ void Renderer::Draw(unsigned int handle)
 		ToScreenSpace(outVert[i+2].pos);
 		//VertexOut asd[3] = {outVert[i], outVert[i+1], outVert[i+2]};
 		//BarRasterizeTriangle(asd, Pixel{255 * randomcolor,0,255 * randomcolor,255});
-		TriangleRaster(outVert[i], outVert[i+1], outVert[i+2]~, Pixel{255 * randomcolor,0,255 * randomcolor,255});
+		TriangleRaster(outVert[i], outVert[i+1], outVert[i+2], Pixel{255 * randomcolor,0,255 * randomcolor,255});
 	}
 	
 	gamer += 0.01f;
@@ -170,7 +171,7 @@ void Renderer::SetVertextShader(std::function<VertexOut(Vertex)> vertex_lambda)
 	this->vertex_shader = vertex_lambda;
 }
 
-void Renderer::SetFragmentShader(std::function<Pixel(VertexOut)> frag_lambda)
+void Renderer::SetFragmentShader(std::function<Pixel(VertexOut, Texture)> frag_lambda)
 {
 	this->frag_shader = frag_lambda;
 }
@@ -428,7 +429,7 @@ void Renderer::ClearFB()
 	}
 	for (size_t i = 0; i < fb_width * fb_height; i++)
 	{
-		depth_buffer[i] = -std::numeric_limits<float>::max();
+		depth_buffer[i] = -std::numeric_limits<float>::infinity();
 	}
 
 
@@ -436,13 +437,6 @@ void Renderer::ClearFB()
 }
 void Renderer::WireFrame(vec3 v0, vec3 v1, vec3 v2)
 {
-	
-	// v0.x *= GetWidth() / 2;
-	// v0.y *= GetHeight() / 2;
-	// v1.x *= GetWidth() / 2;
-	// v1.y *= GetHeight() / 2;
-	// v2.x *= GetWidth() / 2;
-	// v2.y *= GetHeight() / 2;
 	DrawLine(v0, v1);
 	DrawLine(v1, v2);
 	DrawLine(v2, v0);
@@ -516,30 +510,35 @@ void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const V
 	int scan_start = (int)ceil(v0.pos.y - 0.5f);
 	int scan_end = (int)ceil(v2.pos.y - 0.5f);
 
-	vec3 P;
-	for (P.y = scan_start; P.y < scan_end; P.y++)
+	VertexOut P;
+	for (P.pos.y = scan_start; P.pos.y < scan_end; P.pos.y++)
 	{
 		// scanline start X
-		float px0 = m0 * (float(P.y) + 0.5f - v0.pos.y) + v0.pos.x;
-		float px1 = m1 * (float(P.y) + 0.5f - v1.pos.y) + v1.pos.x;
+		float px0 = m0 * (float(P.pos.y) + 0.5f - v0.pos.y) + v0.pos.x;
+		float px1 = m1 * (float(P.pos.y) + 0.5f - v1.pos.y) + v1.pos.x;
 
 		// start, end pixels
 		int pix_start = (int)ceil(px0 - 0.5f);
 		int pix_end = (int)ceil(px1 - 0.5f);
 
-		for (P.x = pix_start; P.x < pix_end; P.x++)
+		for (P.pos.x = pix_start; P.pos.x < pix_end; P.pos.x++)
 		{
 			vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
-			vec3 weights = barycentric(pts, P);
+			vec3 weights = barycentric(pts, P.pos);
 			// if (weights.x < 0 || weights.y < 0 || weights.z < 0)
 			// 	continue;
-			
-			P.z = 0;
-			P.z +=  v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
-			if (depth_buffer[int(P.x + P.y * fb_width)] < P.z)
+
+
+			P.pos.z = 0;
+			//P.pos = vec4(0,0,0,0);
+			P.pos.z += v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
+			//P.pos = v0.pos * weights.x + v1.pos * weights.y + v2.pos * weights.z;
+			P.uv = v0.uv * weights.x + v1.uv * weights.y + v2.uv * weights.z;
+			P.normal = v0.normal * weights.x + v1.normal * weights.y + v2.normal * weights.z;
+			if (depth_buffer[int(P.pos.x + P.pos.y * fb_width)] < P.pos.z)
 			{
-				depth_buffer[int(P.x + P.y * fb_width)] = P.z;
-				PlacePixel(P.x, P.y, color);
+				depth_buffer[int(P.pos.x + P.pos.y * fb_width)] = P.pos.z;
+				PlacePixel(P.pos.x, P.pos.y, color);
 			}
 			
 		}
@@ -560,46 +559,44 @@ void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, cons
 	int scan_start = (int)ceil(v0.pos.y - 0.5f);
 	int scan_end = (int)ceil(v2.pos.y - 0.5f);
 
-	
-	vec3 P;
-	for (P.y = scan_start; P.y < scan_end; P.y++)
+	VertexOut P;
+	for (P.pos.y = scan_start; P.pos.y < scan_end; P.pos.y++)
 	{
 		// scanline start X
-		float px0 = m0 * (float(P.y) + 0.5f - v0.pos.y) + v0.pos.x;
-		float px1 = m1 * (float(P.y) + 0.5f - v0.pos.y) + v0.pos.x;
+		float px0 = m0 * (float(P.pos.y) + 0.5f - v0.pos.y) + v0.pos.x;
+		float px1 = m1 * (float(P.pos.y) + 0.5f - v1.pos.y) + v1.pos.x;
 
 		// start, end pixels
 		int pix_start = (int)ceil(px0 - 0.5f);
 		int pix_end = (int)ceil(px1 - 0.5f);
 
-		for (P.x = pix_start; P.x < pix_end; P.x++)
+		for (P.pos.x = pix_start; P.pos.x < pix_end; P.pos.x++)
 		{
 			vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
-			vec3 weights = barycentric(pts, P);
-			// if (weights.pos.x < 0 || weights.pos.y < 0 || weights.pos.z < 0)
+			vec3 Pw(P.pos.x, P.pos.y, P.pos.z);
+			vec3 weights = barycentric(pts, Pw);
+			// if (weights.x < 0 || weights.y < 0 || weights.z < 0)
 			// 	continue;
+
+
 			
-			P.z = 0;
-			P.z +=  v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
-			if (depth_buffer[int(P.x + P.y * fb_width)] < P.z)
+			P.pos.z = 0;   
+			P.pos.z += v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
+			//P.pos = v0.pos * weights.x + v1.pos * weights.y + v2.pos * weights.z;
+			P.uv = v0.uv * weights.x + v1.uv * weights.y + v2.uv * weights.z;
+			P.normal = v0.normal * weights.x + v1.normal * weights.y + v2.normal * weights.z;
+			if (depth_buffer[int(P.pos.x + P.pos.y * fb_width)] < P.pos.z)
 			{
-				depth_buffer[int(P.x + P.y * fb_width)] = P.z;
-				PlacePixel(P.x, P.y, color);
+				depth_buffer[int(P.pos.x + P.pos.y * fb_width)] = P.pos.z;
+				PlacePixel(P.pos.x, P.pos.y, color);
 			}
 			
 		}
 		
 	}
+	
 }
 
-void Renderer::PutPixel(unsigned int x, unsigned int y, Pixel pix)
-{
-	assert(x >= 0);
-	assert(y >= 0);
-	assert(x < fb_width);
-	assert(y < fb_height);
-	this->frame_buffer[y*fb_width + x] = pix;
-}
 
 vec4& Renderer::ToScreenSpace(vec4& vec)
 {
@@ -620,4 +617,14 @@ bool Renderer::Cull(vec4 v0, vec4 v1, vec4 v2) const
 	vec3 c(v2);
 	
 	return dot(cross((v1 - v0), (v2 - v0)), v0) > 0;
+}
+
+vec3 Renderer::Barycentric(vec3* points, vec3 P)
+{
+	return vec3();
+}
+
+void Renderer::SetTexture(Texture tex)
+{
+	texture = tex;
 }

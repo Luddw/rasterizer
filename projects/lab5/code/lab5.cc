@@ -133,9 +133,10 @@ namespace Example
 
 
 
-
+			Texture meshTex("./resources/texture.png");
+			r.SetTexture(meshTex);
 			glGenTextures(1, &tex_h);
-						
+			
 			r.LoadOBJModel("./resources/smallsuz.obj");
 			//r.LoadOBJModel("./resources/cube.obj");
 			r.Draw(1);
