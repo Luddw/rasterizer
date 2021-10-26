@@ -5,7 +5,7 @@
 
 Texture::Texture(const std::string &path) :  tex_handle(0),filepath(path), localbuf(nullptr),widht(0),height(0),bpp(0)
 {
-	//stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(true);
 
 	localbuf = stbi_load(path.c_str(),&widht,&height,&bpp, 4);
 	if (localbuf == nullptr)
@@ -32,7 +32,7 @@ Texture::Texture(const std::string &path) :  tex_handle(0),filepath(path), local
 
 Texture::Texture(unsigned char * buf) :  tex_handle(0), localbuf(nullptr),widht(0),height(0),bpp(0)
 {
-	//stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(true);
 
 	localbuf = buf;
 	if (localbuf == nullptr)
@@ -94,8 +94,8 @@ void Texture::Unbind()
 Pixel Texture::GetColor(vec3& uvCoord)
 {
 	// fetch position in the texture's buffer, offsetted by bits per pixel
-	const unsigned int x = uvCoord.x * widht;
-	const unsigned int y = uvCoord.y * height;
+	const unsigned int x = uvCoord.x * (float)widht;
+	const unsigned int y = uvCoord.y * (float)height;
 	const unsigned char* imageColor = &localbuf[(x + y * widht) * bpp];
 	
 	return {

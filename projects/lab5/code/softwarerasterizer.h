@@ -94,12 +94,14 @@ struct VertexOut
 	vec4 pos;
 	vec3 uv;
 	vec3 normal;
+	vec3 color;
 	VertexOut Interpolate(const VertexOut& target, float alpha) const
 	{
 		return {
 				pos.interpolate(target.pos, alpha),
 				uv.interpolate(target.uv, alpha),
-				vec3()
+				normal.interpolate(target.normal, alpha),
+				color.interpolate(target.color, alpha)
 		};
 
 	}

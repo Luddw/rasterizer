@@ -11,7 +11,7 @@
 #include <time.h>
 
 
-static float gamer = 0;
+static float staticRotation = 0;
 Renderer::Renderer() : fb_width(0), fb_height(0), frame_buffer(nullptr), depth_buffer(nullptr)
 {
 
@@ -31,7 +31,8 @@ Renderer::Renderer(const int width, const int height)
     
 
 	
-
+	Texture meshTex("./resources/cubetesttex.png");
+	texture = meshTex;  
 
 
 
@@ -59,8 +60,8 @@ Renderer::Renderer(const int width, const int height)
 							vec4(0,0,0.5,0),
 							vec4(0,0,0,1)
 		);
-		mat4 roty = rotationy(gamer);
-		mat4 rotx = rotationx(gamer);
+		mat4 roty = rotationy(staticRotation);
+		mat4 rotx = rotationx(staticRotation);
 		
 		mat4 rot = roty * rotx;
 		
@@ -72,15 +73,16 @@ Renderer::Renderer(const int width, const int height)
 		t_pos = model * t_pos;
 		t_pos = transform(t_pos, view);
 		t_pos = transform(t_pos, proj);
-		VertexOut out{t_pos, vec3(), vec3()};
+		VertexOut out{t_pos, inVert.uv, inVert.normal, vec3(1 | 0, 0 | 1, 1 | 0)};
 		return out;
 	});
 
 	SetFragmentShader([&](VertexOut inVert, Texture tex) -> Pixel {
 		Pixel outColor;
-			
-		outColor = tex.GetColor(inVert.uv);	
+		outColor = tex.GetColor(inVert.uv); 
+		//Pixel outColor(inVert.uv.x * 255, inVert.uv.y * 255, 0, 255);
 		return outColor;
+		//return outColor;
 	});
 }
 
@@ -112,12 +114,11 @@ void Renderer::Draw(unsigned int handle)
 		ToScreenSpace(outVert[i].pos);
 		ToScreenSpace(outVert[i+1].pos);
 		ToScreenSpace(outVert[i+2].pos);
-		//VertexOut asd[3] = {outVert[i], outVert[i+1], outVert[i+2]};
-		//BarRasterizeTriangle(asd, Pixel{255 * randomcolor,0,255 * randomcolor,255});
+
 		TriangleRaster(outVert[i], outVert[i+1], outVert[i+2], Pixel{255 * randomcolor,0,255 * randomcolor,255});
 	}
 	
-	gamer += 0.01f;
+	staticRotation += 0.01f;
 	delete outVert;
 }
 
@@ -143,9 +144,8 @@ void Renderer::SetupFrameBuffer(int width, int height)
 	frame_buffer = new Pixel[width * height];
 	depth_buffer = new float[width * height];
 	for (size_t i = 0; i < width * height; i++)
-	{
 		depth_buffer[i] = -std::numeric_limits<float>::max();
-	}
+
 	
 	
 }
@@ -316,85 +316,7 @@ bool Renderer::LoadOBJModel(std::string filename)
 	
 	return true;
 }
-// bounding box barycoord raster
-// void Renderer::BarRasterizeTriangle(VertexOut* points, Pixel colour)
-// {
 
-// 	//setup Bounding box from vertices
-
-// 	vec3 boundingboxMIN(fb_width - 1, fb_height - 1);
-// 	vec3 boundingboxMAX(0, 0);
-// 	vec3 clamped(fb_width -1, fb_height - 1);
-// 	for (size_t i = 0; i < 3; i++)
-// 	{
-// 		for (size_t j = 0; j < 2; j++)
-// 		{
-// 			// TODO: static cast, ugly --> change matlib in future for different vec data-types i.e float, int
-// 			boundingboxMIN[j] = std::max(0.0f, std::min(boundingboxMIN[j], points[i][j]));
-// 			boundingboxMAX[j] = std::min(clamped[j], std::max(boundingboxMAX[j], points[i][j]));
-// 		}
-// 	}
-	
-	
-// 	vec3 P;
-// 	//traverse the bounding box, place pixels inside of bctriangles
-// 	// "for each pixel ..."	
-// 	for (P.x = boundingboxMIN.x; P.x <= boundingboxMAX.x; P.x++)
-// 	{
-// 		for (P.y = boundingboxMIN.y; P.y <= boundingboxMAX.y; P.y++)
-// 		{
-// 			vec3 screenBarycentric = barycentric(points, P);
-
-// 			if (screenBarycentric.x < 0 || screenBarycentric.y < 0 || screenBarycentric.z < 0) // if clip
-// 				continue;
-				
-// 			P.z = 0;
-// 			for (size_t i=0; i < 3; i++)	//multiply each points Z-value with the bc-coord
-// 			{
-// 				P.z += points[i][2] * screenBarycentric[i];
-// 			}
-
-// 			if (depth_buffer[int(P.x + P.y * fb_width)] < P.z) // check depth, discard otherwise
-// 			{
-// 				depth_buffer[int(P.x + P.y * fb_width)] =  P.z;
-// 				PlacePixel(P.x, P.y, colour);
-// 			}
-			
-// 		}
-// 	}
-	
-// }
-
-void Renderer::NoCullBarRasterizeTriangle(vec3* pts, Pixel colour)
-{
-	// for (size_t ii = 0; ii < 3; ii++)
-	// {	
-	// 	float temp_x, temp_y;
-	// 	temp_x = (pts[ii].x) * fb_width / 2.0f;
-	// 	temp_y = (pts[ii].y) * fb_height / 2.0f;
-	// 	pts[ii].x = temp_x;
-	// 	pts[ii].y = temp_y;
-	// }
-
-	vec3 bboxmin( std::numeric_limits<float>::max(),  std::numeric_limits<float>::max());
-    vec3 bboxmax(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
-    vec3 clamp(fb_width-1, fb_height-1);
-    for (int i=0; i<3; i++) {
-        for (int j=0; j<2; j++) {
-            bboxmin[j] = std::max(0.f,      std::min(bboxmin[j], pts[i][j]));
-            bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
-        }
-    }
-    vec3 P;
-    for (P.x=bboxmin.x; P.x<=bboxmax.x; P.x++) {
-        for (P.y=bboxmin.y; P.y<=bboxmax.y; P.y++) {
-            vec3 bc_screen  = barycentric(pts, P);
-            if (bc_screen.x<0 || bc_screen.y<0 || bc_screen.z<0) {continue; printf("gamer \n");}
-			
-                PlacePixel(P.x, P.y, colour);
-            }
-        }
-}
 
 
 mat4 Renderer::GetMVP()
@@ -523,22 +445,27 @@ void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const V
 
 		for (P.pos.x = pix_start; P.pos.x < pix_end; P.pos.x++)
 		{
-			vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
-			vec3 weights = barycentric(pts, P.pos);
-			// if (weights.x < 0 || weights.y < 0 || weights.z < 0)
-			// 	continue;
+			//vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
+			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
 
 
-			P.pos.z = 0;
-			//P.pos = vec4(0,0,0,0);
-			P.pos.z += v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
+			if (weights.x < 0 || weights.y < 0 || weights.z < 0) //if degenerate
+				continue;
+
 			//P.pos = v0.pos * weights.x + v1.pos * weights.y + v2.pos * weights.z;
+			P.pos.z = 0;
+			P.pos.z += v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
 			P.uv = v0.uv * weights.x + v1.uv * weights.y + v2.uv * weights.z;
 			P.normal = v0.normal * weights.x + v1.normal * weights.y + v2.normal * weights.z;
+			P.color = v0.color * weights.x + v1.color * weights.y + v2.color * weights.z;
+
+
+
 			if (depth_buffer[int(P.pos.x + P.pos.y * fb_width)] < P.pos.z)
 			{
+				Pixel texcol = frag_shader(P, texture);
 				depth_buffer[int(P.pos.x + P.pos.y * fb_width)] = P.pos.z;
-				PlacePixel(P.pos.x, P.pos.y, color);
+				PlacePixel(P.pos.x, P.pos.y, texcol);
 			}
 			
 		}
@@ -564,7 +491,7 @@ void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, cons
 	{
 		// scanline start X
 		float px0 = m0 * (float(P.pos.y) + 0.5f - v0.pos.y) + v0.pos.x;
-		float px1 = m1 * (float(P.pos.y) + 0.5f - v1.pos.y) + v1.pos.x;
+		float px1 = m1 * (float(P.pos.y) + 0.5f - v0.pos.y) + v0.pos.x;
 
 		// start, end pixels
 		int pix_start = (int)ceil(px0 - 0.5f);
@@ -572,24 +499,36 @@ void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, cons
 
 		for (P.pos.x = pix_start; P.pos.x < pix_end; P.pos.x++)
 		{
-			vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
-			vec3 Pw(P.pos.x, P.pos.y, P.pos.z);
-			vec3 weights = barycentric(pts, Pw);
-			// if (weights.x < 0 || weights.y < 0 || weights.z < 0)
-			// 	continue;
+			//vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
+			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
+			if (weights.x < 0 || weights.y < 0 || weights.z < 0)
+				continue;
 
 
 			
-			P.pos.z = 0;   
-			P.pos.z += v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
+			P.pos.z = 0;
 			//P.pos = v0.pos * weights.x + v1.pos * weights.y + v2.pos * weights.z;
+			P.pos.z += v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
 			P.uv = v0.uv * weights.x + v1.uv * weights.y + v2.uv * weights.z;
 			P.normal = v0.normal * weights.x + v1.normal * weights.y + v2.normal * weights.z;
+			P.color = v0.color * weights.x + v1.color * weights.y + v2.color * weights.z;
+
+			// if (weights.x < 0 || weights.y < 0 || weights.z < 0 || depth_buffer[int(P.pos.x + P.pos.y * fb_width)] > P.pos.z) //if degenerate or depth test
+			// 	continue;
+
+			// //if (depth_buffer[int(P.pos.x + P.pos.y * fb_width)] < P.pos.z)
+			// //{
+			// 	Pixel texcol = frag_shader(P, texture);
+			// 	depth_buffer[int(P.pos.x + P.pos.y * fb_width)] = P.pos.z;
+			// 	PlacePixel(P.pos.x, P.pos.y, texcol);
+			// //}
 			if (depth_buffer[int(P.pos.x + P.pos.y * fb_width)] < P.pos.z)
 			{
 				depth_buffer[int(P.pos.x + P.pos.y * fb_width)] = P.pos.z;
-				PlacePixel(P.pos.x, P.pos.y, color);
+				Pixel texcol = frag_shader(P, texture);
+				PlacePixel(P.pos.x, P.pos.y, texcol);
 			}
+			
 			
 		}
 		
@@ -606,6 +545,7 @@ vec4& Renderer::ToScreenSpace(vec4& vec)
 
 	vec.x = (vec.x + 1.0f) * width_offset; 
 	vec.y = (vec.y + 1.0f) * height_offset; 
+
 	return vec;
 }
 
