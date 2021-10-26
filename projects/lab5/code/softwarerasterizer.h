@@ -137,7 +137,7 @@ public:
 	void PlacePixel(unsigned int x, unsigned int y, Pixel pix);
 	void PutPixel(unsigned int x, unsigned int y, Pixel pix);
 	void SetVertextShader(std::function<VertexOut(Vertex)> vertex_lambda);
-	void SetFragmentShader(std::function<Pixel(VertexOut, Texture)> frag_lambda);
+	void SetFragmentShader(std::function<Pixel(VertexOut&, Texture&)> frag_lambda);
 	int GetHeight();
 	int GetWidth();
 	void Draw(unsigned int handle);
@@ -159,7 +159,7 @@ public:
 private:
 	void FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color);
 	void FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color);
-	vec3 Barycentric(vec3* points, vec3 P);
+
 
 private:
 	Pixel colors[12];
@@ -169,7 +169,7 @@ private:
 	Pixel * frame_buffer;
 	float* depth_buffer;
 	std::function<VertexOut(Vertex)> vertex_shader; 
-	std::function<Pixel(VertexOut, Texture)> frag_shader;
+	std::function<Pixel(VertexOut&, Texture&)> frag_shader;
 	mat4 model_view_proj;
 	mat4 viewMat;
 	mat4 projMat;

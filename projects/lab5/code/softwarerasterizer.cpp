@@ -31,7 +31,7 @@ Renderer::Renderer(const int width, const int height)
     
 
 	
-	Texture meshTex("./resources/cubetesttex.png");
+	Texture meshTex("./resources/error.png");
 	texture = meshTex;  
 
 
@@ -73,16 +73,16 @@ Renderer::Renderer(const int width, const int height)
 		t_pos = model * t_pos;
 		t_pos = transform(t_pos, view);
 		t_pos = transform(t_pos, proj);
-		VertexOut out{t_pos, inVert.uv, inVert.normal, vec3(1 | 0, 0 | 1, 1 | 0)};
+		VertexOut out{t_pos, inVert.uv, inVert.normal, vec3(0,0,0)};
 		return out;
 	});
 
-	SetFragmentShader([&](VertexOut inVert, Texture tex) -> Pixel {
-		Pixel outColor;
-		outColor = tex.GetColor(inVert.uv); 
+	SetFragmentShader([&](VertexOut& inVert, Texture& tex) -> Pixel {
+		//Pixel outColor;
+		//outColor = tex.GetColor(inVert.uv); 
 		//Pixel outColor(inVert.uv.x * 255, inVert.uv.y * 255, 0, 255);
-		return outColor;
 		//return outColor;
+		return tex.GetColor(inVert.uv);
 	});
 }
 
@@ -171,7 +171,7 @@ void Renderer::SetVertextShader(std::function<VertexOut(Vertex)> vertex_lambda)
 	this->vertex_shader = vertex_lambda;
 }
 
-void Renderer::SetFragmentShader(std::function<Pixel(VertexOut, Texture)> frag_lambda)
+void Renderer::SetFragmentShader(std::function<Pixel(VertexOut&, Texture&)> frag_lambda)
 {
 	this->frag_shader = frag_lambda;
 }
@@ -429,19 +429,19 @@ void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const V
 	float m1 = (v2.pos.x - v1.pos.x) / (v2.pos.y - v1.pos.y);
 
 	// start and end for scanlines
-	int scan_start = (int)ceil(v0.pos.y - 0.5f);
-	int scan_end = (int)ceil(v2.pos.y - 0.5f);
+	int scan_start = (int)ceil(v0.pos.y);
+	int scan_end = (int)ceil(v2.pos.y);
 
 	VertexOut P;
 	for (P.pos.y = scan_start; P.pos.y < scan_end; P.pos.y++)
 	{
 		// scanline start X
-		float px0 = m0 * (float(P.pos.y) + 0.5f - v0.pos.y) + v0.pos.x;
-		float px1 = m1 * (float(P.pos.y) + 0.5f - v1.pos.y) + v1.pos.x;
+		float px0 = m0 * ((P.pos.y) - v0.pos.y) + v0.pos.x;
+		float px1 = m1 * ((P.pos.y) - v1.pos.y) + v1.pos.x;
 
 		// start, end pixels
-		int pix_start = (int)ceil(px0 - 0.5f);
-		int pix_end = (int)ceil(px1 - 0.5f);
+		int pix_start = (int)ceil(px0);
+		int pix_end = (int)ceil(px1);
 
 		for (P.pos.x = pix_start; P.pos.x < pix_end; P.pos.x++)
 		{
@@ -483,19 +483,19 @@ void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, cons
 	float m1 = (v2.pos.x - v0.pos.x) / (v2.pos.y - v0.pos.y);
 
 	// start and end for scanlines
-	int scan_start = (int)ceil(v0.pos.y - 0.5f);
-	int scan_end = (int)ceil(v2.pos.y - 0.5f);
+	int scan_start = (int)ceil(v0.pos.y);
+	int scan_end = (int)ceil(v2.pos.y);
 
 	VertexOut P;
 	for (P.pos.y = scan_start; P.pos.y < scan_end; P.pos.y++)
 	{
 		// scanline start X
-		float px0 = m0 * (float(P.pos.y) + 0.5f - v0.pos.y) + v0.pos.x;
-		float px1 = m1 * (float(P.pos.y) + 0.5f - v0.pos.y) + v0.pos.x;
+		float px0 = m0 * ((P.pos.y) - v0.pos.y) + v0.pos.x;
+		float px1 = m1 * ((P.pos.y) - v0.pos.y) + v0.pos.x;
 
 		// start, end pixels
-		int pix_start = (int)ceil(px0 - 0.5f);
-		int pix_end = (int)ceil(px1 - 0.5f);
+		int pix_start = (int)ceil(px0);
+		int pix_end = (int)ceil(px1);
 
 		for (P.pos.x = pix_start; P.pos.x < pix_end; P.pos.x++)
 		{
@@ -559,10 +559,7 @@ bool Renderer::Cull(vec4 v0, vec4 v1, vec4 v2) const
 	return dot(cross((v1 - v0), (v2 - v0)), v0) > 0;
 }
 
-vec3 Renderer::Barycentric(vec3* points, vec3 P)
-{
-	return vec3();
-}
+
 
 void Renderer::SetTexture(Texture tex)
 {
