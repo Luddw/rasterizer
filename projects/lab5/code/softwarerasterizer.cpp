@@ -78,11 +78,12 @@ Renderer::Renderer(const int width, const int height)
 	});
 
 	SetFragmentShader([&](VertexOut& inVert, Texture& tex) -> Pixel {
-		//Pixel outColor;
+		Pixel outColor;
+		outColor.r = 244;
 		//outColor = tex.GetColor(inVert.uv); 
 		//Pixel outColor(inVert.uv.x * 255, inVert.uv.y * 255, 0, 255);
-		//return outColor;
-		return tex.GetColor(inVert.uv);
+		return outColor;
+		//return tex.GetColor(inVert.uv);
 	});
 }
 
@@ -226,7 +227,6 @@ void Renderer::DrawLine(vec3 p1, vec3 p2)
     int y = p1.y;
     
 
-
     for (size_t x = p1.x; x <= p2.x; x++)
     {
         
@@ -343,9 +343,9 @@ void Renderer::ClearFB()
 {
 	for (size_t i = 0; i < fb_height*fb_width; i++)
 	{
-		frame_buffer[i].r = 254;
-		frame_buffer[i].g = 0; 
-		frame_buffer[i].b = 0; 
+		frame_buffer[i].r = 200;
+		frame_buffer[i].g = 200; 
+		frame_buffer[i].b = 254; 
 		frame_buffer[i].a = 254; 
 
 	}
@@ -429,23 +429,24 @@ void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const V
 	float m1 = (v2.pos.x - v1.pos.x) / (v2.pos.y - v1.pos.y);
 
 	// start and end for scanlines
-	int scan_start = (int)ceil(v0.pos.y);
-	int scan_end = (int)ceil(v2.pos.y);
+	int scan_start = (int)ceil(v0.pos.y - 0.5f);
+	int scan_end = (int)ceil(v2.pos.y - 0.5f);
 
 	VertexOut P;
 	for (P.pos.y = scan_start; P.pos.y < scan_end; P.pos.y++)
 	{
 		// scanline start X
-		float px0 = m0 * ((P.pos.y) - v0.pos.y) + v0.pos.x;
-		float px1 = m1 * ((P.pos.y) - v1.pos.y) + v1.pos.x;
+		float px0 = m0 * ((P.pos.y) + 0.5f - v0.pos.y) + v0.pos.x;
+		float px1 = m1 * ((P.pos.y) + 0.5f - v1.pos.y) + v1.pos.x;
 
 		// start, end pixels
-		int pix_start = (int)ceil(px0);
-		int pix_end = (int)ceil(px1);
+		int pix_start = (int)ceil(px0 - 0.5f);
+		int pix_end = (int)ceil(px1 - 0.5f);
 
 		for (P.pos.x = pix_start; P.pos.x < pix_end; P.pos.x++)
 		{
 			//vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
+			P.pos.z = 0;
 			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
 
 
@@ -483,23 +484,25 @@ void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, cons
 	float m1 = (v2.pos.x - v0.pos.x) / (v2.pos.y - v0.pos.y);
 
 	// start and end for scanlines
-	int scan_start = (int)ceil(v0.pos.y);
-	int scan_end = (int)ceil(v2.pos.y);
+	int scan_start = (int)ceil(v0.pos.y  - 0.5f);
+	int scan_end = (int)ceil(v2.pos.y - 0.5f);
 
 	VertexOut P;
 	for (P.pos.y = scan_start; P.pos.y < scan_end; P.pos.y++)
 	{
 		// scanline start X
-		float px0 = m0 * ((P.pos.y) - v0.pos.y) + v0.pos.x;
-		float px1 = m1 * ((P.pos.y) - v0.pos.y) + v0.pos.x;
+		float px0 = m0 * ((P.pos.y) + 0.5f - v0.pos.y) + v0.pos.x;
+		float px1 = m1 * ((P.pos.y) + 0.5f - v0.pos.y) + v0.pos.x;
 
 		// start, end pixels
-		int pix_start = (int)ceil(px0);
-		int pix_end = (int)ceil(px1);
+		int pix_start = (int)ceil(px0 - 0.5f);
+		int pix_end = (int)ceil(px1 - 0.5f);
 
 		for (P.pos.x = pix_start; P.pos.x < pix_end; P.pos.x++)
 		{
 			//vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
+			P.pos.z = 0;
+
 			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
 			if (weights.x < 0 || weights.y < 0 || weights.z < 0)
 				continue;
