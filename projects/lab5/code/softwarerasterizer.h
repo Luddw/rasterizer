@@ -156,6 +156,7 @@ public:
 	vec4& ToScreenSpace(vec4& vec);
 	bool Cull(vec4 v0, vec4 v1, vec4 v2) const;
 	void SetTexture(Texture tex);
+	VertexOut ApplyWeights(VertexOut v0, VertexOut v1, VertexOut v2, vec3 weights);
 private:
 	void FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color);
 	void FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color);

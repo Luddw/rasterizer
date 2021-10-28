@@ -78,11 +78,36 @@ Renderer::Renderer(const int width, const int height)
 	});
 
 	SetFragmentShader([&](VertexOut& inVert, Texture& tex) -> Pixel {
-		Pixel outColor;
+		Pixel texcol;
+		vec3 lightcolor(254,254,254);
+		vec3 light_pos(1,1,0);
+		vec3 cam_pos(0,0,1);
+		texcol = tex.GetColor(inVert.uv);
+		vec3 texture_color(texcol.r,texcol.g,texcol.b);
+		float intensity = 0.9f;
+
+		vec3 ambient = lightcolor * intensity;
+		vec3 frag_norm = normalize(inVert.normal);
+		vec3 light_direction = normalize(light_pos - inVert.pos);
+
+		float diffuse_intensity = fmax(dot(frag_norm, light_direction), 0.0f);
+
+		vec3 diffuse = lightcolor * diffuse_intensity;
+		
+		float specular_intensity = 0.5f;
+		vec3 view_direction = normalize(cam_pos - inVert.pos);
+		vec3 halfway_direction = normalize(light_direction + view_direction);
+		float specular_value = pow(fmax(dot(frag_norm, halfway_direction), 0.0f), 32);
+
+		vec3 specular = lightcolor * specular_intensity * specular_value;
+
+		vec3 finalcolor(ambient + diffuse + specular);
+		finalcolor = mul(finalcolor, texture_color);
 		//outColor.r = 244;
-		outColor = tex.GetColor(inVert.uv); 
+		Pixel out(finalcolor.x * 255, finalcolor.x * 255,finalcolor.x * 255, 255);
 		//Pixel outColor(inVert.uv.x * 255, inVert.uv.y * 255, 0, 255);
-		return outColor;
+		//out = Pixel(inVert.uv.x * 255, inVert.uv.y * 255, 0 * 255, 255);
+		return out;
 		//return tex.GetColor(inVert.uv);
 	});
 }
@@ -453,12 +478,9 @@ void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const V
 			// if (weights.x < 0 || weights.y < 0 || weights.z < 0) //if degenerate
 			// 	continue;
 
-			//P.pos = v0.pos * weights.x + v1.pos * weights.y + v2.pos * weights.z;
-			P.pos.z = 0;
-			P.pos.z += v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
-			P.uv = v0.uv * weights.x + v1.uv * weights.y + v2.uv * weights.z;
-			P.normal = v0.normal * weights.x + v1.normal * weights.y + v2.normal * weights.z;
-			P.color = v0.color * weights.x + v1.color * weights.y + v2.color * weights.z;
+			P = ApplyWeights(v0, v1, v2, weights);
+
+
 
 
 
@@ -509,22 +531,10 @@ void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, cons
 
 
 			
-			P.pos.z = 0;
-			//P.pos = v0.pos * weights.x + v1.pos * weights.y + v2.pos * weights.z;
-			P.pos.z += v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
-			P.uv = v0.uv * weights.x + v1.uv * weights.y + v2.uv * weights.z;
-			P.normal = v0.normal * weights.x + v1.normal * weights.y + v2.normal * weights.z;
-			P.color = v0.color * weights.x + v1.color * weights.y + v2.color * weights.z;
 
-			// if (weights.x < 0 || weights.y < 0 || weights.z < 0 || depth_buffer[int(P.pos.x + P.pos.y * fb_width)] > P.pos.z) //if degenerate or depth test
-			// 	continue;
+			P = ApplyWeights(v0, v1, v2, weights);
 
-			// //if (depth_buffer[int(P.pos.x + P.pos.y * fb_width)] < P.pos.z)
-			// //{
-			// 	Pixel texcol = frag_shader(P, texture);
-			// 	depth_buffer[int(P.pos.x + P.pos.y * fb_width)] = P.pos.z;
-			// 	PlacePixel(P.pos.x, P.pos.y, texcol);
-			// //}
+
 			if (depth_buffer[int(P.pos.x + P.pos.y * fb_width)] < P.pos.z)
 			{
 				depth_buffer[int(P.pos.x + P.pos.y * fb_width)] = P.pos.z;
@@ -539,6 +549,15 @@ void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, cons
 	
 }
 
+VertexOut Renderer::ApplyWeights(VertexOut v0, VertexOut v1, VertexOut v2, vec3 weights)
+{
+	VertexOut out;
+	out.pos = v0.pos * weights.x + v1.pos * weights.y + v2.pos * weights.z;
+	out.uv = v0.uv * weights.x + v1.uv * weights.y + v2.uv * weights.z;
+	out.normal = v0.normal * weights.x + v1.normal * weights.y + v2.normal * weights.z;
+	out.color = v0.color * weights.x + v1.color * weights.y + v2.color * weights.z;
+	return out;
+}
 
 vec4& Renderer::ToScreenSpace(vec4& vec)
 {
@@ -548,6 +567,7 @@ vec4& Renderer::ToScreenSpace(vec4& vec)
 
 	vec.x = (vec.x + 1.0f) * width_offset; 
 	vec.y = (vec.y + 1.0f) * height_offset; 
+	vec.z = (vec.y + 1.0f); 
 
 	return vec;
 }

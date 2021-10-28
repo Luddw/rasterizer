@@ -463,28 +463,28 @@ inline float area(vec3 v0, vec3 v1, vec3 v2)
 inline vec3
 barycentric(vec3 v0, vec3 v1, vec3 v2, vec3 P)
 {
-    float AArea, BArea, CArea;
-    float totArea = area(v0,v1,v2);
-    AArea = area(v1,v2,P) / totArea;
-    BArea = area(v0,v2,P) / totArea;
-    CArea = 1.0f - AArea - BArea;
+    // float AArea, BArea, CArea;
+    // float totArea = area(v0,v1,v2);
+    // AArea = area(v1,v2,P) / totArea;
+    // BArea = area(v0,v2,P) / totArea;
+    // CArea = 1.0f - AArea - BArea;
 
-    float sdf = AArea + BArea + CArea;
+    // float sdf = AArea + BArea + CArea;
 
-    return vec3(AArea, BArea, CArea);
+    // return vec3(AArea, BArea, CArea);
 
 
 
     
-    // vec3 u = cross(
-    //     vec3(v2.x - v0.x, v1.x - v0.x, v0.x - P.x), // u
-    //     vec3(v2.y - v0.y, v1.y - v0.y, v0.y - P.y)  // v
-    // );
+    vec3 u = cross(
+        vec3(v2.x - v0.x, v1.x - v0.x, v0.x - P.x), // u
+        vec3(v2.y - v0.y, v1.y - v0.y, v0.y - P.y)  // v
+    );
 
-    // // edge-case in case of degen-triangle
-    // if (std::abs(u[2]) > 1e-2)
-    //     return vec3(1.0f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
-    // return vec3(-1,1,1);
+    // edge-case in case of degen-triangle
+    if (std::abs(u[2]) > 1e-2)
+        return vec3(1.0f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+    //return vec3(-1,1,1);
 }
 
 inline mat4 mat4::operator*(mat4 const& rhs) const {return multiply(*this, rhs);}
