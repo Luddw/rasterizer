@@ -79,8 +79,8 @@ Renderer::Renderer(const int width, const int height)
 
 	SetFragmentShader([&](VertexOut& inVert, Texture& tex) -> Pixel {
 		Pixel outColor;
-		outColor.r = 244;
-		//outColor = tex.GetColor(inVert.uv); 
+		//outColor.r = 244;
+		outColor = tex.GetColor(inVert.uv); 
 		//Pixel outColor(inVert.uv.x * 255, inVert.uv.y * 255, 0, 255);
 		return outColor;
 		//return tex.GetColor(inVert.uv);
@@ -196,8 +196,8 @@ void Renderer::SetModelViewProjectionMatrix(const mat4 &mvp)
 void Renderer::SaveFB()
 {
 	stbi_flip_vertically_on_write(true);
-	stbi_write_png("gamer.png", fb_width, fb_height, 4, frame_buffer, fb_width*4);
-	printf("writing image: %s \n", "gamer.png");
+	stbi_write_png("capture.png", fb_width, fb_height, 4, frame_buffer, fb_width*4);
+	printf("writing image: %s \n", "capture.png");
 }
 
 
@@ -450,8 +450,8 @@ void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const V
 			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
 
 
-			if (weights.x < 0 || weights.y < 0 || weights.z < 0) //if degenerate
-				continue;
+			// if (weights.x < 0 || weights.y < 0 || weights.z < 0) //if degenerate
+			// 	continue;
 
 			//P.pos = v0.pos * weights.x + v1.pos * weights.y + v2.pos * weights.z;
 			P.pos.z = 0;
@@ -504,8 +504,8 @@ void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, cons
 			P.pos.z = 0;
 
 			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
-			if (weights.x < 0 || weights.y < 0 || weights.z < 0)
-				continue;
+			//if (weights.x < 0 || weights.y < 0 || weights.z < 0)
+			//	continue;
 
 
 			

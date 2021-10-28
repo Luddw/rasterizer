@@ -94,8 +94,8 @@ void Texture::Unbind()
 Pixel Texture::GetColor(vec3& uvCoord)
 {
 	// fetch position in the texture's buffer, offsetted by bits per pixel
-	const unsigned int x = uvCoord.x * widht;
-	const unsigned int y = uvCoord.y * height;
+	const unsigned int x =  fmax(fmin(uvCoord.x * widht, widht), 0);
+	const unsigned int y = fmax(fmin(uvCoord.y * height, height), 0);
 	const unsigned char* imageColor = &localbuf[(x + y * widht) * bpp];
 	
 	return {
