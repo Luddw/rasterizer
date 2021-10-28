@@ -471,7 +471,7 @@ void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const V
 		for (P.pos.x = pix_start; P.pos.x < pix_end; P.pos.x++)
 		{
 			//vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
-			P.pos.z = 0;
+//			P.pos.z = 0;
 			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
 
 
@@ -523,7 +523,7 @@ void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, cons
 		for (P.pos.x = pix_start; P.pos.x < pix_end; P.pos.x++)
 		{
 			//vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
-			P.pos.z = 0;
+//			P.pos.z = 0;
 
 			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
 			//if (weights.x < 0 || weights.y < 0 || weights.z < 0)
