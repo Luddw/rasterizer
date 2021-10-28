@@ -485,6 +485,7 @@ barycentric(vec3 v0, vec3 v1, vec3 v2, vec3 P)
     if (std::abs(u[2]) > 1e-2)
         return vec3(1.0f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
     //return vec3(-1,1,1);
+
 }
 
 inline mat4 mat4::operator*(mat4 const& rhs) const {return multiply(*this, rhs);}

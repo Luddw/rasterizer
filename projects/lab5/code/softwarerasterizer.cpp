@@ -73,7 +73,14 @@ Renderer::Renderer(const int width, const int height)
 		t_pos = model * t_pos;
 		t_pos = transform(t_pos, view);
 		t_pos = transform(t_pos, proj);
+
+
+		//vec3 fragment_pos = vec3(model * vec4(inVert.pos.x, inVert.pos.x, inVert.pos.x, 1.0));
+		vec4 modelspacenormal = model * vec4(inVert.normal.x, inVert.normal.y, inVert.normal.z, 1.0f);
+		//vec3 mspacenormal(modelspacenormal);
 		VertexOut out{t_pos, inVert.uv, inVert.normal, vec3(0,0,0)};
+		//printf("normal %f \n", modelspacenormal.y);
+
 		return out;
 	});
 
@@ -105,8 +112,8 @@ Renderer::Renderer(const int width, const int height)
 		finalcolor = mul(finalcolor, texture_color);
 		//outColor.r = 244;
 		Pixel out(finalcolor.x * 255, finalcolor.x * 255,finalcolor.x * 255, 255);
-		//Pixel outColor(inVert.uv.x * 255, inVert.uv.y * 255, 0, 255);
-		//out = Pixel(inVert.uv.x * 255, inVert.uv.y * 255, 0 * 255, 255);
+		out = Pixel(frag_norm.x * 255, frag_norm.y * 255, frag_norm.z * 255, 255);
+		out = Pixel(inVert.uv.x * 255, inVert.uv.y * 255, inVert.uv.z * 255, 255);
 		return out;
 		//return tex.GetColor(inVert.uv);
 	});
@@ -121,10 +128,9 @@ Renderer::~Renderer()
 void Renderer::Draw(unsigned int handle)
 {
 	const BufferObject object = buffer_handles[handle];
-	int randomcolor;
 	size_t vbuffsize = object.v_buffer.size();
 	VertexOut* outVert = new VertexOut[vbuffsize];
-	
+
 	for (size_t i = 0; i < object.i_buffer.size(); i++)
 	{
 		outVert[i] = vertex_shader(object.v_buffer[i]);
@@ -135,17 +141,15 @@ void Renderer::Draw(unsigned int handle)
 		if (Cull(outVert[i].pos, outVert[i+1].pos, outVert[i+2].pos))
 			continue;
 
-		randomcolor = (i/3) % 2;
-
 		ToScreenSpace(outVert[i].pos);
 		ToScreenSpace(outVert[i+1].pos);
 		ToScreenSpace(outVert[i+2].pos);
 
-		TriangleRaster(outVert[i], outVert[i+1], outVert[i+2], Pixel{255 * randomcolor,0,255 * randomcolor,255});
+		TriangleRaster(outVert[i], outVert[i+1], outVert[i+2]);
 	}
 	
 	staticRotation += 0.01f;
-	delete outVert;
+	delete[] outVert;
 }
 
 void Renderer::AddVertexBuffer(Vertex * buffer) 
@@ -272,51 +276,176 @@ void Renderer::DrawLine(vec3 p1, vec3 p2)
     
 
 }
-
-
-//scanline raster
-void Renderer::RasterizeTriangle(vec3 v0, vec3 v1, vec3 v2, Pixel colour)
+bool Renderer::OBJLoad(const char* filename)
 {
-	if (v0.y == v1.y && v0.y == v2.y)
-		return;
+
+	std::vector<GLuint> vertexIndices, uvIndices, normIndices;
+	std::vector<vec3> t_verts;
+	std::vector<vec3> t_uvs;
+	std::vector<vec3> t_norms;
+
+	std::vector<Vertex> outverts;
+	std::vector<unsigned> indices;
+
+	std::ifstream stream(filename);
+	std::string line;
+
+	enum type
+	{
+		v, vt, vn, f, none
+	};
+	while (getline(stream, line))
+	{
+		std::string tmp;
+		std::stringstream ss(line);
+		std::vector<std::string> tokens;
+		while (getline(ss, tmp, ' '))
+		{
+			tokens.emplace_back(tmp);
+		}
+		if (tokens.empty())
+			continue;
+
+		type t = none;
+		if (tokens[0] == "v")
+			t = v;
+		else if (tokens[0] == "vt")
+			t = vt;
+		else if (tokens[0] == "vn")
+			t = vn;
+		else if (tokens[0] == "f")
+			t = f;
+		else if (tokens[0] == "#")
+			continue;
+
+		//std::cout << tokens[0] << std::endl;
+
+		switch (t)
+		{
+		case v:
+		{
+			vec3 vert;
+			for (size_t i = 1; i < 4; i++)
+			{
+				scanf(tokens[i].c_str(), "%f", &vert[i - 1]);
+			}
+
+			t_verts.emplace_back(vert);
+			break;
+		}
+		case vt:
+		{
+			vec3 uv(0,0,0);
+			for (size_t i = 1; i < 3; i++)
+			{
+				scanf(tokens[i].c_str(), "%f", &uv[i - 1]);
+
+			}
+
+
+			//t_uvs.emplace_back(uv);
+			break;
+		}
+		case vn:
+		{
+			vec4 norm;
+			for (size_t i = 1; i < 4; i++)
+			{
+				scanf(tokens[i].c_str(), "%f", &norm[i - 1]);
+
+			}
+
+			t_norms.emplace_back(norm);
+			break;
+		}
+		case f:
+		{
+			unsigned int vert, uvs, norms;
+
+
+			if (tokens.size() == 4) //triangle
+			{
+				for (size_t i = 1; i < 4; i++)
+				{
+					//scanf(tokens[i].c_str(), "%d/%d/%d", &verts,  &uvs, &norms);
+					scanf(tokens[i].c_str(), "%d/%d/%d", &vert, &uvs, &norms);
+
+
+					vertexIndices.emplace_back(vert);
+					uvIndices.emplace_back(uvs);
+					normIndices.emplace_back(norms);
+				}
+
+
+			}
+			else if (tokens.size() == 5) //quad
+			{
+				std::vector<GLuint> tempverts, tempuvs, tempnorms;
+				for (size_t i = 1; i < 5; i++)
+				{
+					scanf(tokens[i].c_str(), "%d/%d/%d" , &vert, &uvs, &norms);
+
+
+					tempverts.emplace_back(vert);
+					tempuvs.emplace_back(uvs);
+					tempnorms.emplace_back(norms);
+				}
+				vertexIndices.emplace_back(tempverts[0]);
+				vertexIndices.emplace_back(tempverts[1]);
+				vertexIndices.emplace_back(tempverts[3]);
+				vertexIndices.emplace_back(tempverts[2]);
+				vertexIndices.emplace_back(tempverts[3]);
+				vertexIndices.emplace_back(tempverts[1]);
+
+				uvIndices.emplace_back(tempuvs[0]);
+				uvIndices.emplace_back(tempuvs[1]);
+				uvIndices.emplace_back(tempuvs[3]);
+				uvIndices.emplace_back(tempuvs[2]);
+				uvIndices.emplace_back(tempuvs[3]);
+				uvIndices.emplace_back(tempuvs[1]);
+
+				normIndices.emplace_back(tempnorms[0]);
+				normIndices.emplace_back(tempnorms[1]);
+				normIndices.emplace_back(tempnorms[3]);
+				normIndices.emplace_back(tempnorms[2]);
+				normIndices.emplace_back(tempnorms[3]);
+				normIndices.emplace_back(tempnorms[1]);
+
+			}
+
+
+			break;
+		}
+		default:
+			break;
+		}
+
+	}
+	std::vector<vec4> buf;
+
+
+	for (size_t i = 0; i < vertexIndices.size(); i++)
+	{
+		unsigned int vertIndex = vertexIndices[i];
+		unsigned int uvIndex = uvIndices[i];
+		unsigned int normIndex = normIndices[i];
+
 	
-    if (v0.y > v1.y)
-        std::swap(v0, v1);
-    if (v0.y > v2.y)
-        std::swap(v0, v2);
-    if (v1.y > v2.y)
-        std::swap(v1, v2);
+		vec3 pos = t_verts[vertIndex - 1];
+		vec3 uv = t_uvs[uvIndex - 1];
+		vec3 norm = t_norms[normIndex - 1];
+		
+		outverts.emplace_back(Vertex{pos, uv, norm});
+		indices.emplace_back(i);
+	}
 
-    float height = v2.y - v0.y; //total "height" of the triangle to raster
+	std::cout << vertexIndices.size() << std::endl;
+	std::cout << uvIndices.size() << std::endl;
+	std::cout << normIndices.size() << std::endl;
 
-    // scanline rasterization, both segments
-    for (size_t i = 0; i < height; i++)
-    {        
-        bool isSegmentTwo = i > v1.y - v0.y || v1.y == v0.y;
-        int heightSegment = isSegmentTwo ? v2.y - v1.y : v1.y - v0.y;
-
-        float a = (float)i / height;
-        float b = (float)(i - (isSegmentTwo ? v1.y - v0.y : 0))/heightSegment;
-        vec3 A = v0 + vec3(v2 - v0) * a;
-        vec3 B = isSegmentTwo ? v1 + vec3(v2 - v1) * b : v0 + vec3(v1 - v0) * b;
-        if (A.x > B.x)
-            std::swap(A, B);
-
-        for (size_t ii = A.x; ii <= B.x; ii++)
-        {
-            float k = B.x == A.x ? 1.0f : (float)(ii - A.x) / (float)(B.x - A.x);
-            vec3 P = vec3(A) + vec3(B - A)*k;
-            int index = P.x + P.y * fb_width;
-            if (depth_buffer[index] < P.z)
-            {
-                depth_buffer[index] = P.z;
-                PlacePixel(P.x, P.y, Pixel{254 * P.z, 254 * P.z, 254 * P.z, 254});
-            }    
-        }
-    }
-
+	AddBuffer(outverts, indices, 0);
+	return 1;
 }
-
 bool Renderer::LoadOBJModel(std::string filename)
 {
 
@@ -330,10 +459,34 @@ bool Renderer::LoadOBJModel(std::string filename)
 	outIndices = loader.LoadedMeshes[0].Indices;
 	
 
-	for (size_t i = 0; i < loader.LoadedVertices.size(); i++)
+	for (int i = 0; i < loader.LoadedVertices.size(); i++)
 	{
-		outVerts.emplace_back(loader.LoadedVertices[i]);
-
+		outVerts.push_back(loader.LoadedMeshes[0].Vertices[i]);
+		printf("%d normal %f %f %f \n", i, loader.LoadedMeshes[0].Vertices[i].normal.x,
+		loader.LoadedMeshes[0].Vertices[i].normal.y,
+		loader.LoadedMeshes[0].Vertices[i].normal.z);
+		switch (i)
+		{
+		case 31:
+			outVerts[i].normal = vec3(0.f,1.f,0.f);
+			continue;
+		case 32:
+			outVerts[i].normal = vec3(0.5f,0.f,0.f);
+			continue;
+		case 33:
+			outVerts[i].normal = vec3(0.5f,1.f,0.f);
+			continue;
+		case 34:
+			outVerts[i].normal = vec3(0.5f,0.f,1.f);
+			continue;
+		case 35:
+			outVerts[i].normal = vec3(0.5f,0.f,1.f);
+			continue;
+		
+		default:
+			continue;
+		}
+		
 	}
 	
 	AddBuffer(outVerts, outIndices, 0);
@@ -364,6 +517,7 @@ void Renderer::UpdateQuadTex(GLuint handle)
 	//glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,fb_width,fb_height,0,GL_RGBA,GL_UNSIGNED_BYTE, frame_buffer);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
+
 void Renderer::ClearFB()
 {
 	for (size_t i = 0; i < fb_height*fb_width; i++)
@@ -382,6 +536,7 @@ void Renderer::ClearFB()
 
 	
 }
+
 void Renderer::WireFrame(vec3 v0, vec3 v1, vec3 v2)
 {
 	DrawLine(v0, v1);
@@ -389,9 +544,7 @@ void Renderer::WireFrame(vec3 v0, vec3 v1, vec3 v2)
 	DrawLine(v2, v0);
 }
 
-
-
-void Renderer::TriangleRaster(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color)
+void Renderer::TriangleRaster(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2)
 {
 	
 	const VertexOut* p_v0 = &v0;
@@ -414,7 +567,7 @@ void Renderer::TriangleRaster(const VertexOut& v0, const VertexOut& v1, const Ve
 		if (p_v1->pos.x < p_v0->pos.x)
 			std::swap(p_v0, p_v1);
 
-		FlatTopTriangle(*p_v0, *p_v1, *p_v2, color);
+		FlatTopTriangle(*p_v0, *p_v1, *p_v2);
 	}
 	else if (p_v1->pos.y == p_v2->pos.y)	// bottom flat
 	{
@@ -422,7 +575,7 @@ void Renderer::TriangleRaster(const VertexOut& v0, const VertexOut& v1, const Ve
 		if (p_v2->pos.x < p_v1->pos.x)
 			std::swap(p_v1, p_v2);
 		
-		FlatBottomTriangle(*p_v0, *p_v1, *p_v2, color);
+		FlatBottomTriangle(*p_v0, *p_v1, *p_v2);
 	}
 	else // any triangle
 	{
@@ -432,20 +585,20 @@ void Renderer::TriangleRaster(const VertexOut& v0, const VertexOut& v1, const Ve
 
 		if (p_v1->pos.x < vk.pos.x) // right major
 		{
-			FlatBottomTriangle(*p_v0, *p_v1, vk, color);
-			FlatTopTriangle(*p_v1, vk, *p_v2, color);
+			FlatBottomTriangle(*p_v0, *p_v1, vk);
+			FlatTopTriangle(*p_v1, vk, *p_v2);
 		}
 		else	// left major
 		{
-			FlatBottomTriangle(*p_v0, vk, *p_v1, color);
-			FlatTopTriangle(vk, *p_v1, *p_v2, color);
+			FlatBottomTriangle(*p_v0, vk, *p_v1);
+			FlatTopTriangle(vk, *p_v1, *p_v2);
 		}
 		
 	}
 	
 }
 
-void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color)
+void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2)
 {
 
 
@@ -454,24 +607,25 @@ void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const V
 	float m1 = (v2.pos.x - v1.pos.x) / (v2.pos.y - v1.pos.y);
 
 	// start and end for scanlines
-	int scan_start = (int)ceil(v0.pos.y - 0.5f);
-	int scan_end = (int)ceil(v2.pos.y - 0.5f);
+	int scan_start = (int)ceil(v0.pos.y );
+	int scan_end = (int)ceil(v2.pos.y );
 
 	VertexOut P;
-	for (P.pos.y = scan_start; P.pos.y < scan_end; P.pos.y++)
+	for (int y = scan_start; y < scan_end; y++)
 	{
 		// scanline start X
-		float px0 = m0 * ((P.pos.y) + 0.5f - v0.pos.y) + v0.pos.x;
-		float px1 = m1 * ((P.pos.y) + 0.5f - v1.pos.y) + v1.pos.x;
+		float px0 = m0 * (float(y)  - v0.pos.y) + v0.pos.x;
+		float px1 = m1 * (float(y) - v1.pos.y) + v1.pos.x;
 
 		// start, end pixels
-		int pix_start = (int)ceil(px0 - 0.5f);
-		int pix_end = (int)ceil(px1 - 0.5f);
+		int pix_start = (int)ceil(px0 );
+		int pix_end = (int)ceil(px1 );
 
-		for (P.pos.x = pix_start; P.pos.x < pix_end; P.pos.x++)
+		for (int x = pix_start; x < pix_end; x++)
 		{
 			//vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
-//			P.pos.z = 0;
+			P.pos.x = x;
+			P.pos.y = y;
 			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
 
 
@@ -479,16 +633,17 @@ void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const V
 			// 	continue;
 
 			P = ApplyWeights(v0, v1, v2, weights);
-
+			P.pos.x = x;
+			P.pos.y = y;
 
 
 
 
 			if (depth_buffer[int(P.pos.x + P.pos.y * fb_width)] < P.pos.z)
 			{
-				Pixel texcol = frag_shader(P, texture);
+				
 				depth_buffer[int(P.pos.x + P.pos.y * fb_width)] = P.pos.z;
-				PlacePixel(P.pos.x, P.pos.y, texcol);
+				PlacePixel(P.pos.x, P.pos.y, frag_shader(P, texture));
 			}
 			
 		}
@@ -498,7 +653,7 @@ void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const V
 
 }
 
-void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color)
+void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2)
 {
 
 	// calc line slopes in screen-space
@@ -506,25 +661,26 @@ void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, cons
 	float m1 = (v2.pos.x - v0.pos.x) / (v2.pos.y - v0.pos.y);
 
 	// start and end for scanlines
-	int scan_start = (int)ceil(v0.pos.y  - 0.5f);
-	int scan_end = (int)ceil(v2.pos.y - 0.5f);
+	int scan_start = (int)ceil(v0.pos.y );
+	int scan_end = (int)ceil(v2.pos.y );
 
 	VertexOut P;
-	for (P.pos.y = scan_start; P.pos.y < scan_end; P.pos.y++)
+	for (int y = scan_start; y < scan_end; y++)
 	{
 		// scanline start X
-		float px0 = m0 * ((P.pos.y) + 0.5f - v0.pos.y) + v0.pos.x;
-		float px1 = m1 * ((P.pos.y) + 0.5f - v0.pos.y) + v0.pos.x;
+		float px0 = m0 * (float(y) - v0.pos.y) + v0.pos.x;
+		float px1 = m1 * (float(y)  - v0.pos.y) + v0.pos.x;
 
 		// start, end pixels
-		int pix_start = (int)ceil(px0 - 0.5f);
-		int pix_end = (int)ceil(px1 - 0.5f);
+		int pix_start = (int)ceil(px0 );
+		int pix_end = (int)ceil(px1 );
 
-		for (P.pos.x = pix_start; P.pos.x < pix_end; P.pos.x++)
+		for (int x = pix_start; x < pix_end; x++)
 		{
 			//vec3 pts[3] = {v0.pos,v1.pos,v2.pos};
 //			P.pos.z = 0;
-
+			P.pos.x = x;
+			P.pos.y = y;
 			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
 			//if (weights.x < 0 || weights.y < 0 || weights.z < 0)
 			//	continue;
@@ -533,13 +689,13 @@ void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, cons
 			
 
 			P = ApplyWeights(v0, v1, v2, weights);
-
+			P.pos.x = x;
+			P.pos.y = y;
 
 			if (depth_buffer[int(P.pos.x + P.pos.y * fb_width)] < P.pos.z)
 			{
 				depth_buffer[int(P.pos.x + P.pos.y * fb_width)] = P.pos.z;
-				Pixel texcol = frag_shader(P, texture);
-				PlacePixel(P.pos.x, P.pos.y, texcol);
+				PlacePixel(P.pos.x, P.pos.y, frag_shader(P, texture));
 			}
 			
 			
@@ -553,6 +709,8 @@ VertexOut Renderer::ApplyWeights(VertexOut v0, VertexOut v1, VertexOut v2, vec3 
 {
 	VertexOut out;
 	out.pos = v0.pos * weights.x + v1.pos * weights.y + v2.pos * weights.z;
+	out.pos.z = 0;
+	out.pos.z += v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
 	out.uv = v0.uv * weights.x + v1.uv * weights.y + v2.uv * weights.z;
 	out.normal = v0.normal * weights.x + v1.normal * weights.y + v2.normal * weights.z;
 	out.color = v0.color * weights.x + v1.color * weights.y + v2.color * weights.z;
@@ -587,4 +745,77 @@ bool Renderer::Cull(vec4 v0, vec4 v1, vec4 v2) const
 void Renderer::SetTexture(Texture tex)
 {
 	texture = tex;
+}
+
+
+
+void Renderer::AddCube(float size)
+{
+	
+	size /= 2.0f;
+	
+	std::vector<Vertex> outverts = { 
+		// Left
+		Vertex(vec3(-size, -size, -size),	vec3(1.0f, 0.75f),vec3(-1.f,0,0)),
+		Vertex(vec3(-size, -size, size),   vec3(0.75f, 0.75f),vec3(-1.f,0,0)),
+		Vertex(vec3(-size, size, size),		vec3(0.75f, 0.5f),vec3(-1.f,0,0)),
+		Vertex(vec3(-size, size, -size),	 vec3(1.0f, 0.5f),vec3(-1.f,0,0)),
+
+		// Front
+		Vertex(vec3(-size,-size,size),	  vec3(0.25f, 0.75f),vec3(0,0,1.f)),
+		Vertex(vec3(size, -size, size),	   vec3(0.0f, 0.75f),vec3(0,0,1.f)),
+		Vertex(vec3(size, size, size),	    vec3(0.0f, 0.5f),vec3(0,0,1.f)),
+		Vertex(vec3(-size, size, size),	   vec3(0.25f, 0.5f),vec3(0,0,1.f)),
+
+
+
+		// Back
+		Vertex(vec3(size, -size, -size), vec3(0.75f, 0.75f),vec3(0,0,-1.f)),
+		Vertex(vec3(-size, -size, -size), vec3(0.5f, 0.75f),vec3(0,0,-1.f)),
+		Vertex(vec3(-size, size, -size),   vec3(0.5f, 0.5f),vec3(0,0,-1.f)),
+		Vertex(vec3(size, size, -size),   vec3(0.75f, 0.5f),vec3(0,0,-1.f)),
+
+
+
+		// Right
+		Vertex(vec3(size, -size, size),vec3(0.5f, 0.75f),  vec3(1.f,0,0)),
+		Vertex(vec3(size, -size, -size),vec3(0.25f, 0.75f),vec3(1.f,0,0)),
+		Vertex(vec3(size, size, -size),vec3(0.25f, 0.5f),  vec3(1.f,0,0)),
+		Vertex(vec3(size, size, size),  vec3(0.5f, 0.5f),  vec3(1.f,0,0)),
+
+		// Top
+		Vertex(vec3(-size, size, size), vec3(0.75f, 0.5f),  vec3(0,1.f,0)),
+		Vertex(vec3(size, size, size),  vec3(0.5f, 0.5f),   vec3(0,1.f,0)),
+		Vertex(vec3(size, size, -size), vec3(0.5f, 0.25f),  vec3(0,1.f,0)),
+		Vertex(vec3(-size, size, -size), vec3(0.75f, 0.25f),vec3(0,1.f,0)),
+
+		// Bottom
+		Vertex(vec3(size, -size, size),  vec3(0.75f, 1.0f),  vec3(0,-1.f,0)),
+		Vertex(vec3(-size, -size, size), vec3(0.5f, 1.0f),   vec3(0,-1.f,0)),
+		Vertex(vec3(-size, -size, -size),vec3(0.5f, 0.75f),  vec3(0,-1.f,0)),
+		Vertex(vec3(size, -size, -size),  vec3(0.75f, 0.75f),vec3(0,-1.f,0)),
+	};
+
+	std::vector<unsigned int> indices = {
+		0,1,3,		//triangle 1 //front
+		2,3,1,		//triagnle 2
+
+		4,5,7,		//triangle 1 //back		
+		6,7,5,		//triagnle 2
+
+		8,9,11,		//triangle 1 //right		
+		10,11,9,		//triagnle 2
+
+		12,13,15,		//triangle 1				
+		14,15,13,		//triagnle 2
+
+		16,17,19,	//triangle 1				
+		18,19,17,		//triagnle 2
+
+		20,21,23,		//triangle 1				
+		22,23,21,	//triagnle 2
+	};
+
+	AddBuffer(outverts, indices, 0);
+
 }

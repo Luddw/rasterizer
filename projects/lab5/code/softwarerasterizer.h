@@ -151,19 +151,21 @@ public:
 	mat4 GetMVP();
 	void ClearFB();
 	void WireFrame(vec3 v0, vec3 v1, vec3 v2);
-	void TriangleRaster(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color);
+	void TriangleRaster(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2);
 	void NoCullBarRasterizeTriangle(vec3* pts, Pixel colour);
 	vec4& ToScreenSpace(vec4& vec);
 	bool Cull(vec4 v0, vec4 v1, vec4 v2) const;
 	void SetTexture(Texture tex);
 	VertexOut ApplyWeights(VertexOut v0, VertexOut v1, VertexOut v2, vec3 weights);
+	void AddCube(float size);
+	bool OBJLoad(const char* filename);
 private:
-	void FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color);
-	void FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2, Pixel color);
+	void FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2);
+	void FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2);
 
 
 private:
-	Pixel colors[12];
+
 	std::map<unsigned int, BufferObject> buffer_handles;
 	int fb_height;
 	int fb_width;
@@ -179,8 +181,6 @@ private:
 	float width_offset;
 	float height_offset;
 	Texture texture;
-	// ShaderResource fb_shader;S
-	// MeshResource fb_mesh;*/
 	void InitResources();
 };
 
