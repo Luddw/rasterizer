@@ -136,11 +136,9 @@ namespace Example
 
 			glGenTextures(1, &tex_h);
 			
-			r.LoadOBJModel("./resources/suz2.obj");
+			//r.LoadOBJModel("./resources/suz2.obj");
 			//r.LoadOBJModel("./resources/cubeuv.obj");
-			//r.OBJLoad("./resources/cubeuv.obj");
-			//r.AddCube(1.0f);
-			//Texture meshTex("./resources/texture.png");
+			r.OBJLoad("./resources/cubeuv.obj");
 			r.Draw(1);
 			glBindTexture(GL_TEXTURE_2D, tex_h);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

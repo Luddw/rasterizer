@@ -79,7 +79,6 @@ Renderer::Renderer(const int width, const int height)
 		vec4 modelspacenormal = model * vec4(inVert.normal.x, inVert.normal.y, inVert.normal.z, 1.0f);
 		//vec3 mspacenormal(modelspacenormal);
 		VertexOut out{t_pos, inVert.uv, inVert.normal, vec3(0,0,0)};
-		//printf("normal %f \n", modelspacenormal.y);
 
 		return out;
 	});
@@ -110,12 +109,10 @@ Renderer::Renderer(const int width, const int height)
 
 		vec3 finalcolor(ambient + diffuse + specular);
 		finalcolor = mul(finalcolor, texture_color);
-		//outColor.r = 244;
 		Pixel out(finalcolor.x * 255, finalcolor.x * 255,finalcolor.x * 255, 255);
 		out = Pixel(frag_norm.x * 255, frag_norm.y * 255, frag_norm.z * 255, 255);
 		out = Pixel(inVert.uv.x * 255, inVert.uv.y * 255, inVert.uv.z * 255, 255);
-		return out;
-		//return tex.GetColor(inVert.uv);
+		return tex.GetColor(inVert.uv);
 	});
 }
 
@@ -278,221 +275,102 @@ void Renderer::DrawLine(vec3 p1, vec3 p2)
 }
 bool Renderer::OBJLoad(const char* filename)
 {
+	std::vector<vec3> t_pos;
+	std::vector<vec3> t_uv;
+	std::vector<vec3> t_normal;
+	std::vector<Vertex> vertices;
+	std::vector<unsigned int> indices;
 
-	std::vector<GLuint> vertexIndices, uvIndices, normIndices;
-	std::vector<vec3> t_verts;
-	std::vector<vec3> t_uvs;
-	std::vector<vec3> t_norms;
-
-	std::vector<Vertex> outverts;
-	std::vector<unsigned> indices;
-
-	std::ifstream stream(filename);
+	std::ifstream fileStream(filename);
 	std::string line;
 
-	enum type
+	while (std::getline(fileStream, line))
 	{
-		v, vt, vn, f, none
-	};
-	while (getline(stream, line))
-	{
-		std::string tmp;
-		std::stringstream ss(line);
-		std::vector<std::string> tokens;
-		while (getline(ss, tmp, ' '))
+		std::istringstream lineStream(line);
+		std::string attributeLine;
+		lineStream >> attributeLine;
+		
+		// pos
+		if (attributeLine == "v")
 		{
-			tokens.emplace_back(tmp);
+			float x = 0.0f;
+			float y = 0.0f;
+			float z = 0.0f;
+			float w = 1.0f;
+			
+			lineStream >> x >> y >> z >> w;
+			t_pos.push_back(vec3(x, y, z));
+
 		}
-		if (tokens.empty())
-			continue;
-
-		type t = none;
-		if (tokens[0] == "v")
-			t = v;
-		else if (tokens[0] == "vt")
-			t = vt;
-		else if (tokens[0] == "vn")
-			t = vn;
-		else if (tokens[0] == "f")
-			t = f;
-		else if (tokens[0] == "#")
-			continue;
-
-		//std::cout << tokens[0] << std::endl;
-
-		switch (t)
+		
+		// uv
+		if (attributeLine == "vt")
 		{
-		case v:
+			float u = 0.0f;
+			float v = 0.0f;
+			float w = 0.0f;
+			lineStream >> u >> v >> w;
+			t_uv.push_back(vec3(u, v));
+		}
+		
+		// normal
+		if (attributeLine == "vn")
 		{
-			vec3 vert;
-			for (size_t i = 1; i < 4; i++)
+			float i = 0.0f;
+			float j = 0.0f;
+			float k = 0.0f;
+			lineStream >> i >> j >> k;
+			t_normal.push_back(vec3(i, j, k));
+		}
+		
+		// face
+		if (attributeLine == "f")
+		{
+			std::vector<VertexOBJref> refs;
+			std::string refString;
+			while (lineStream >> refString)
 			{
-				scanf(tokens[i].c_str(), "%f", &vert[i - 1]);
+				std::istringstream ref(refString);
+				std::string vStr, vtStr, vnStr;
+				std::getline(ref, vStr, '/');
+				std::getline(ref, vtStr, '/');
+				std::getline(ref, vnStr, '/');
+
+				int v = atoi(vStr.c_str());
+				int vt = atoi(vtStr.c_str());
+				int vn = atoi(vnStr.c_str());
+				v = ( v >= 0 ? v : t_pos.size() + v);
+				vt = ( vt >= 0 ? vt : t_uv.size() + vt);
+				vn = ( vn >= 0 ? vn : t_normal.size() + vn);
+				refs.push_back(VertexOBJref{v, vt, vn});
 			}
 
-			t_verts.emplace_back(vert);
-			break;
-		}
-		case vt:
-		{
-			vec3 uv(0,0,0);
-			for (size_t i = 1; i < 3; i++)
+			// triangulate
+			for (size_t i = 0; i+1 < refs.size(); ++i)
 			{
-				scanf(tokens[i].c_str(), "%f", &uv[i - 1]);
+				const VertexOBJref* p[3] = {&refs[0], &refs[1], &refs[2]};
 
-			}
+				vec3 U(t_pos[p[1]->v] - t_pos[p[0]->v]);
+				vec3 V(t_pos[p[2]->v] - t_pos[p[0]->v]);
+				vec3 faceNorm = normalize(cross(U, V));
 
-
-			//t_uvs.emplace_back(uv);
-			break;
-		}
-		case vn:
-		{
-			vec4 norm;
-			for (size_t i = 1; i < 4; i++)
-			{
-				scanf(tokens[i].c_str(), "%f", &norm[i - 1]);
-
-			}
-
-			t_norms.emplace_back(norm);
-			break;
-		}
-		case f:
-		{
-			unsigned int vert, uvs, norms;
-
-
-			if (tokens.size() == 4) //triangle
-			{
-				for (size_t i = 1; i < 4; i++)
+				for (size_t j = 0; j < 3; ++j)
 				{
-					//scanf(tokens[i].c_str(), "%d/%d/%d", &verts,  &uvs, &norms);
-					scanf(tokens[i].c_str(), "%d/%d/%d", &vert, &uvs, &norms);
-
-
-					vertexIndices.emplace_back(vert);
-					uvIndices.emplace_back(uvs);
-					normIndices.emplace_back(norms);
+					Vertex vert;
+					vert.pos = vec3(t_pos[p[j]->v]);
+					vert.uv = vec3(t_uv[p[j]->vt]);
+					vert.normal = (p[j]->vn != 0 ? t_normal[p[j]->vn] : faceNorm);
+					vertices.push_back(vert);
 				}
-
-
+				indices.push_back(i);
 			}
-			else if (tokens.size() == 5) //quad
-			{
-				std::vector<GLuint> tempverts, tempuvs, tempnorms;
-				for (size_t i = 1; i < 5; i++)
-				{
-					scanf(tokens[i].c_str(), "%d/%d/%d" , &vert, &uvs, &norms);
-
-
-					tempverts.emplace_back(vert);
-					tempuvs.emplace_back(uvs);
-					tempnorms.emplace_back(norms);
-				}
-				vertexIndices.emplace_back(tempverts[0]);
-				vertexIndices.emplace_back(tempverts[1]);
-				vertexIndices.emplace_back(tempverts[3]);
-				vertexIndices.emplace_back(tempverts[2]);
-				vertexIndices.emplace_back(tempverts[3]);
-				vertexIndices.emplace_back(tempverts[1]);
-
-				uvIndices.emplace_back(tempuvs[0]);
-				uvIndices.emplace_back(tempuvs[1]);
-				uvIndices.emplace_back(tempuvs[3]);
-				uvIndices.emplace_back(tempuvs[2]);
-				uvIndices.emplace_back(tempuvs[3]);
-				uvIndices.emplace_back(tempuvs[1]);
-
-				normIndices.emplace_back(tempnorms[0]);
-				normIndices.emplace_back(tempnorms[1]);
-				normIndices.emplace_back(tempnorms[3]);
-				normIndices.emplace_back(tempnorms[2]);
-				normIndices.emplace_back(tempnorms[3]);
-				normIndices.emplace_back(tempnorms[1]);
-
-			}
-
-
-			break;
-		}
-		default:
-			break;
-		}
-
-	}
-	std::vector<vec4> buf;
-
-
-	for (size_t i = 0; i < vertexIndices.size(); i++)
-	{
-		unsigned int vertIndex = vertexIndices[i];
-		unsigned int uvIndex = uvIndices[i];
-		unsigned int normIndex = normIndices[i];
-
-	
-		vec3 pos = t_verts[vertIndex - 1];
-		vec3 uv = t_uvs[uvIndex - 1];
-		vec3 norm = t_norms[normIndex - 1];
-		
-		outverts.emplace_back(Vertex{pos, uv, norm});
-		indices.emplace_back(i);
-	}
-
-	std::cout << vertexIndices.size() << std::endl;
-	std::cout << uvIndices.size() << std::endl;
-	std::cout << normIndices.size() << std::endl;
-
-	AddBuffer(outverts, indices, 0);
-	return 1;
-}
-bool Renderer::LoadOBJModel(std::string filename)
-{
-
-	std::vector<Vertex> outVerts;
-	std::vector<unsigned int> outIndices;
-	Loader loader;
-	bool loadout = loader.LoadFile(filename);
-	if (loadout != true)
-		return false;
-
-	outIndices = loader.LoadedMeshes[0].Indices;
-	
-
-	for (int i = 0; i < loader.LoadedVertices.size(); i++)
-	{
-		outVerts.push_back(loader.LoadedMeshes[0].Vertices[i]);
-		printf("%d normal %f %f %f \n", i, loader.LoadedMeshes[0].Vertices[i].normal.x,
-		loader.LoadedMeshes[0].Vertices[i].normal.y,
-		loader.LoadedMeshes[0].Vertices[i].normal.z);
-		switch (i)
-		{
-		case 31:
-			outVerts[i].normal = vec3(0.f,1.f,0.f);
-			continue;
-		case 32:
-			outVerts[i].normal = vec3(0.5f,0.f,0.f);
-			continue;
-		case 33:
-			outVerts[i].normal = vec3(0.5f,1.f,0.f);
-			continue;
-		case 34:
-			outVerts[i].normal = vec3(0.5f,0.f,1.f);
-			continue;
-		case 35:
-			outVerts[i].normal = vec3(0.5f,0.f,1.f);
-			continue;
-		
-		default:
-			continue;
+			
+			
 		}
 		
 	}
-	
-	AddBuffer(outVerts, outIndices, 0);
 
-	
-	return true;
+	AddBuffer(vertices, indices,0);
 }
 
 
