@@ -9,6 +9,7 @@
 #include "objloader.h"
 #include <algorithm>
 #include <time.h>
+#include <queue>
 
 
 static float staticRotation = 0;
@@ -74,8 +75,8 @@ Renderer::Renderer(const int width, const int height)
 
 
 		//vec3 fragment_pos = vec3(model * vec4(inVert.pos.x, inVert.pos.x, inVert.pos.x, 1.0));
-		//vec4 modelspacenormal = model * vec4(inVert.normal.x, inVert.normal.y, inVert.normal.z, 1.0f);
-		//vec3 mspacenormal(modelspacenormal);
+		vec4 modelspacenormal = model * vec4(inVert.normal.x, inVert.normal.y, inVert.normal.z, 1.0f);
+		vec3 mspacenormal(modelspacenormal);
 
 		return {t_pos, inVert.uv, inVert.normal};
 	});
@@ -107,9 +108,9 @@ Renderer::Renderer(const int width, const int height)
 		vec3 finalcolor(ambient + diffuse + specular);
 		finalcolor = mul(finalcolor, texture_color);
 		Pixel out(finalcolor.x * 255, finalcolor.x * 255,finalcolor.x * 255, 255);
-		out = Pixel(frag_norm.x * 255, frag_norm.y * 255, frag_norm.z * 255, 255);
-		out = Pixel(inVert.uv.x * 255, inVert.uv.y * 255, inVert.uv.z * 255, 255);
-		return tex.GetColor(inVert.uv);
+		out = Pixel(inVert.normal.x * 255, inVert.normal.y * 255, inVert.normal.z * 255, 255);
+		//out = Pixel(inVert.uv.x * 255, inVert.uv.y * 255, inVert.uv.z * 255, 255);
+		return out;
 	});
 }
 
@@ -268,16 +269,17 @@ void Renderer::DrawLine(vec3 p1, vec3 p2)
 bool Renderer::OBJLoad(const char* filename)
 {
 	std::vector<Vertex> outVerts;
+	std::queue<Vertex> queueVerts;
 	std::vector<unsigned int> indices;
 	
-	std::vector<vec3> t_pos(1, vec3());
-	std::vector<vec3> t_uv(1, vec3());
-	std::vector<vec3> t_normal(1, vec3());
+	std::vector<vec3> t_pos(1, vec3(0,0,0));
+	std::vector<vec3> t_uv(1, vec3(0,0,0));
+	std::vector<vec3> t_normal(1, vec3(0,0,0));
 
 
 	std::ifstream fileStream(filename);
 	std::string line;
-
+	
 	while (std::getline(fileStream, line))
 	{
 		std::istringstream lineStream(line);
@@ -292,7 +294,7 @@ bool Renderer::OBJLoad(const char* filename)
 			float z = 0.0f;
 			float w = 1.0f;		
 			lineStream >> x >> y >> z >> w;
-			t_pos.push_back(vec3{x, y, z});
+			t_pos.emplace_back(x, y, z);
 
 		}
 		
@@ -303,7 +305,7 @@ bool Renderer::OBJLoad(const char* filename)
 			float v = 0.0f;
 			float w = 0.0f;
 			lineStream >> u >> v >> w;
-			t_uv.push_back(vec3{u, v});
+			t_uv.emplace_back(u, v);
 		}
 		
 		// normal
@@ -313,7 +315,7 @@ bool Renderer::OBJLoad(const char* filename)
 			float j = 0.0f;
 			float k = 0.0f;
 			lineStream >> i >> j >> k;
-			t_normal.push_back(normalize(vec3{i, j, k}));
+			t_normal.emplace_back(normalize(vec3(i, j, k)));
 		}
 		
 		// face
@@ -335,33 +337,44 @@ bool Renderer::OBJLoad(const char* filename)
 				v = ( v >= 0 ? v : t_pos.size() + v);
 				vt = ( vt >= 0 ? vt : t_uv.size() + vt);
 				vn = ( vn >= 0 ? vn : t_normal.size() + vn);
-				refs.push_back(VertexOBJref{v, vt, vn});
+				refs.emplace_back(v, vt, vn);
 			}
 
-			// triangulate
-			for (size_t i = 1; i+1 < refs.size(); i++)
-			{
-				const VertexOBJref* p[3] = {&refs[0], &refs[i], &refs[i+1]};
 
-				vec3 U(t_pos[p[1]->v] - t_pos[p[0]->v]);
-				vec3 V(t_pos[p[2]->v] - t_pos[p[0]->v]);
-				vec3 faceNorm = normalize(cross(U, V));
+			// triangulate
+			for (size_t i = 1; i+1 < refs.size(); ++i)
+			{
+				// p is f in obj-file --> v/vt/vn v/vt/vn v/vt/vn
+				const VertexOBJref* p[3] = {&refs[0], &refs[i], &refs[i+1]};
+				vec3 U( t_pos[ p[1]->v ] - t_pos[ p[0]->v ] );
+                vec3 V( t_pos[ p[2]->v ] - t_pos[ p[0]->v ] );
+                vec3 faceNorm = normalize( cross( U, V ) );
 
 				for (size_t j = 0; j < 3; j++)
 				{
-					Vertex vert;
-					vert.pos = vec3(t_pos[p[j]->v]);
-					vert.uv = vec3(t_uv[p[j]->vt]);
-					//vert.normal = (p[j]->vn != 0 ? t_normal[p[j]->vn] : faceNorm);
-					vert.normal = t_normal[p[j]->vn];
-					outVerts.push_back(vert);
+					//Vertex vert;
+					const vec3 pos(t_pos[p[j]->v]);
+					const vec3 uv(t_uv[p[j]->vt]);
+					const vec3 normal(p[j]->vn != 0 ? t_normal[p[j]->vn] : faceNorm);
+
+					
+					// vert.pos = vec3(t_pos[p[j]->v]);
+					// vert.uv = vec3(t_uv[p[j]->vt]);
+					// vert.normal = (p[j]->vn != 0 ? t_normal[p[j]->vn] : faceNorm);
+					// printf("[] normal: x %f y %f z %f \n", vert.normal.x, vert.normal.y, vert.normal.z);
+
+					//vert.normal = vec3(t_normal[p[j]->vn]);
+                    //vert.normal = ( p[j]->vn != 0 ? normals[ p[j]->vn ] : faceNormal );
+					//outVerts.push_back(vert);
+					outVerts.emplace_back(pos, uv, normal);
+					//outVerts[outVerts.size()-1].normal = vert.normal;
+
 				}
 				//printf("[%d] normal: x %f y %f z %f \n", i, vertices[i].normal.x, vertices[i].normal.y, vertices[i].normal.z);
 				indices.push_back(i);
 			}	
 		}
 	}
-
 	
 	AddBuffer(outVerts, indices);
 	return true;
@@ -372,7 +385,7 @@ bool Renderer::OBJLoad(const char* filename)
 void Renderer::UpdateQuadTex(GLuint handle)
 {
 
-	glBindTextuzre(GL_TEXTURE_2D, handle);
+	glBindTexture(GL_TEXTURE_2D, handle);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
