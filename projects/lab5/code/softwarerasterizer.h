@@ -94,14 +94,12 @@ struct VertexOut
 	vec4 pos;
 	vec3 uv;
 	vec3 normal;
-	vec3 color;
 	VertexOut Interpolate(const VertexOut& target, float alpha) const
 	{
 		return {
 				pos.interpolate(target.pos, alpha),
 				uv.interpolate(target.uv, alpha),
 				normal.interpolate(target.normal, alpha),
-				color.interpolate(target.color, alpha)
 		};
 
 	}
@@ -135,8 +133,7 @@ public:
 	~Renderer();
 	void AddVertexBuffer(Vertex* buffer);
 	void AddIndexBuffer(unsigned int* buffer);
-	const unsigned int AddBuffer(std::vector<Vertex> &vbuff, std::vector<unsigned int> &ibuff, unsigned int faces);
-	const unsigned int AddModelBuff(std::vector<Model> &vbuff, std::vector<unsigned int> &ibuff);
+	const unsigned int AddBuffer(std::vector<Vertex> &vbuff, std::vector<unsigned int> &ibuff);
 	void SetupFrameBuffer(int width, int height);
 	Pixel * GetFramebuffer();
 	const int GetFramebufferSize();
@@ -165,6 +162,7 @@ public:
 	VertexOut ApplyWeights(VertexOut v0, VertexOut v1, VertexOut v2, vec3 weights);
 	void AddCube(float size);
 	bool OBJLoad(const char* filename);
+	bool LoadOBJFile(const char * filepath);
 private:
 	void FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2);
 	void FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2);
@@ -172,22 +170,19 @@ private:
 
 private:
 
-	std::map<unsigned int, BufferObject> buffer_handles;
+	//std::map<unsigned int, BufferObject> buffer_handles;
 	int fb_height;
 	int fb_width;
 	Pixel * frame_buffer;
 	float* depth_buffer;
 	std::function<VertexOut(Vertex)> vertex_shader; 
 	std::function<Pixel(VertexOut&, Texture&)> frag_shader;
-	mat4 model_view_proj;
-	mat4 viewMat;
-	mat4 projMat;
 
-	std::map<unsigned int, Model> model_handles;
+
+	std::vector<BufferObject> buffer_handles;
 	float width_offset;
 	float height_offset;
 	Texture texture;
-	void InitResources();
 };
 
 

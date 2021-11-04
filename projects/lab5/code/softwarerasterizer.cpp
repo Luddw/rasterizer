@@ -26,9 +26,7 @@ Renderer::Renderer(const int width, const int height)
 	height_offset = height / 2.0f;    
 	width_offset = width / 2.0f;    
 	SetupFrameBuffer(width, height);
-	projMat = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
-	viewMat = lookat(vec3(0,0,1.0f), vec3(0,0,-1), vec3(0,1,0));
-    
+
 
 	
 	Texture meshTex("./resources/error.png");
@@ -76,11 +74,10 @@ Renderer::Renderer(const int width, const int height)
 
 
 		//vec3 fragment_pos = vec3(model * vec4(inVert.pos.x, inVert.pos.x, inVert.pos.x, 1.0));
-		vec4 modelspacenormal = model * vec4(inVert.normal.x, inVert.normal.y, inVert.normal.z, 1.0f);
+		//vec4 modelspacenormal = model * vec4(inVert.normal.x, inVert.normal.y, inVert.normal.z, 1.0f);
 		//vec3 mspacenormal(modelspacenormal);
-		VertexOut out{t_pos, inVert.uv, inVert.normal, vec3(0,0,0)};
 
-		return out;
+		return {t_pos, inVert.uv, inVert.normal};
 	});
 
 	SetFragmentShader([&](VertexOut& inVert, Texture& tex) -> Pixel {
@@ -124,16 +121,16 @@ Renderer::~Renderer()
 
 void Renderer::Draw(unsigned int handle)
 {
-	const BufferObject object = buffer_handles[handle];
+	BufferObject object = buffer_handles.at(handle);
 	size_t vbuffsize = object.v_buffer.size();
 	VertexOut* outVert = new VertexOut[vbuffsize];
 
-	for (size_t i = 0; i < object.i_buffer.size(); i++)
+	for (size_t i = 0; i < object.v_buffer.size(); i++)
 	{
 		outVert[i] = vertex_shader(object.v_buffer[i]);
 
 	}
-	for (size_t i = 0; i < object.i_buffer.size(); i+=3)
+	for (size_t i = 0; i < object.v_buffer.size(); i+=3)
 	{
 		if (Cull(outVert[i].pos, outVert[i+1].pos, outVert[i+2].pos))
 			continue;
@@ -159,11 +156,9 @@ void Renderer::AddIndexBuffer(unsigned int * buffer)
 	
 }
 
-const unsigned int Renderer::AddBuffer(std::vector<Vertex> &vbuff, std::vector<unsigned int> &ibuff, unsigned int faces)
+const unsigned int Renderer::AddBuffer(std::vector<Vertex> &vbuff, std::vector<unsigned int> &ibuff)
 {
-	unsigned int t_handle = 1;
-	buffer_handles.emplace(t_handle, BufferObject(vbuff, ibuff));
-	return t_handle;
+	buffer_handles.push_back(BufferObject(vbuff, ibuff));	
 }
 
 void Renderer::SetupFrameBuffer(int width, int height)
@@ -213,10 +208,7 @@ int Renderer::GetWidth()
 	return fb_width;
 }
 
-void Renderer::SetModelViewProjectionMatrix(const mat4 &mvp)
-{
-	model_view_proj = mvp;
-}
+
 
 //save framebuffer as png in running directory
 void Renderer::SaveFB()
@@ -275,11 +267,13 @@ void Renderer::DrawLine(vec3 p1, vec3 p2)
 }
 bool Renderer::OBJLoad(const char* filename)
 {
-	std::vector<vec3> t_pos;
-	std::vector<vec3> t_uv;
-	std::vector<vec3> t_normal;
-	std::vector<Vertex> vertices;
+	std::vector<Vertex> outVerts;
 	std::vector<unsigned int> indices;
+	
+	std::vector<vec3> t_pos(1, vec3());
+	std::vector<vec3> t_uv(1, vec3());
+	std::vector<vec3> t_normal(1, vec3());
+
 
 	std::ifstream fileStream(filename);
 	std::string line;
@@ -296,10 +290,9 @@ bool Renderer::OBJLoad(const char* filename)
 			float x = 0.0f;
 			float y = 0.0f;
 			float z = 0.0f;
-			float w = 1.0f;
-			
+			float w = 1.0f;		
 			lineStream >> x >> y >> z >> w;
-			t_pos.push_back(vec3(x, y, z));
+			t_pos.push_back(vec3{x, y, z});
 
 		}
 		
@@ -310,7 +303,7 @@ bool Renderer::OBJLoad(const char* filename)
 			float v = 0.0f;
 			float w = 0.0f;
 			lineStream >> u >> v >> w;
-			t_uv.push_back(vec3(u, v));
+			t_uv.push_back(vec3{u, v});
 		}
 		
 		// normal
@@ -320,7 +313,7 @@ bool Renderer::OBJLoad(const char* filename)
 			float j = 0.0f;
 			float k = 0.0f;
 			lineStream >> i >> j >> k;
-			t_normal.push_back(vec3(i, j, k));
+			t_normal.push_back(normalize(vec3{i, j, k}));
 		}
 		
 		// face
@@ -346,47 +339,40 @@ bool Renderer::OBJLoad(const char* filename)
 			}
 
 			// triangulate
-			for (size_t i = 0; i+1 < refs.size(); ++i)
+			for (size_t i = 1; i+1 < refs.size(); i++)
 			{
-				const VertexOBJref* p[3] = {&refs[0], &refs[1], &refs[2]};
+				const VertexOBJref* p[3] = {&refs[0], &refs[i], &refs[i+1]};
 
 				vec3 U(t_pos[p[1]->v] - t_pos[p[0]->v]);
 				vec3 V(t_pos[p[2]->v] - t_pos[p[0]->v]);
 				vec3 faceNorm = normalize(cross(U, V));
 
-				for (size_t j = 0; j < 3; ++j)
+				for (size_t j = 0; j < 3; j++)
 				{
 					Vertex vert;
 					vert.pos = vec3(t_pos[p[j]->v]);
 					vert.uv = vec3(t_uv[p[j]->vt]);
-					vert.normal = (p[j]->vn != 0 ? t_normal[p[j]->vn] : faceNorm);
-					vertices.push_back(vert);
+					//vert.normal = (p[j]->vn != 0 ? t_normal[p[j]->vn] : faceNorm);
+					vert.normal = t_normal[p[j]->vn];
+					outVerts.push_back(vert);
 				}
+				//printf("[%d] normal: x %f y %f z %f \n", i, vertices[i].normal.x, vertices[i].normal.y, vertices[i].normal.z);
 				indices.push_back(i);
-			}
-			
-			
+			}	
 		}
-		
 	}
 
-	AddBuffer(vertices, indices,0);
+	
+	AddBuffer(outVerts, indices);
+	return true;
 }
 
 
-
-mat4 Renderer::GetMVP()
-{
-	return mat4(vec4(1,0,0,0),
-				vec4(0,1,0,0),
-				vec4(0,0,1,0),
-				vec4(0,0,0,1)) * viewMat * projMat ;
-}
 
 void Renderer::UpdateQuadTex(GLuint handle)
 {
 
-	glBindTexture(GL_TEXTURE_2D, handle);
+	glBindTextuzre(GL_TEXTURE_2D, handle);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
@@ -404,12 +390,12 @@ void Renderer::ClearFB()
 		frame_buffer[i].g = 200; 
 		frame_buffer[i].b = 254; 
 		frame_buffer[i].a = 254; 
+		depth_buffer[i] = -std::numeric_limits<float>::infinity();
 
 	}
-	for (size_t i = 0; i < fb_width * fb_height; i++)
-	{
-		depth_buffer[i] = -std::numeric_limits<float>::infinity();
-	}
+	// for (size_t i = 0; i < fb_width * fb_height; i++)
+	// {
+	// }
 
 
 	
@@ -591,7 +577,6 @@ VertexOut Renderer::ApplyWeights(VertexOut v0, VertexOut v1, VertexOut v2, vec3 
 	out.pos.z += v0.pos.z * weights.x + v1.pos.z * weights.y + v2.pos.z * weights.z;
 	out.uv = v0.uv * weights.x + v1.uv * weights.y + v2.uv * weights.z;
 	out.normal = v0.normal * weights.x + v1.normal * weights.y + v2.normal * weights.z;
-	out.color = v0.color * weights.x + v1.color * weights.y + v2.color * weights.z;
 	return out;
 }
 
@@ -627,10 +612,11 @@ void Renderer::SetTexture(Texture tex)
 
 
 
+
 void Renderer::AddCube(float size)
 {
 	
-	size /= 2.0f;
+	size /= 2;
 	
 	std::vector<Vertex> outverts = { 
 		// Left
@@ -694,6 +680,31 @@ void Renderer::AddCube(float size)
 		22,23,21,	//triagnle 2
 	};
 
-	AddBuffer(outverts, indices, 0);
+	AddBuffer(outverts, indices);
 
+}
+
+bool Renderer::LoadOBJModel(std::string filename)
+{
+
+	std::vector<Vertex> outVerts;
+	std::vector<unsigned int> outIndices;
+	Loader loader;
+	bool loadout = loader.LoadFile(filename);
+	if (loadout != true)
+		return false;
+
+	outIndices = loader.LoadedMeshes[0].Indices;
+	
+
+	for (size_t i = 0; i < loader.LoadedVertices.size(); i++)
+	{
+		outVerts.emplace_back(loader.LoadedVertices[i]);
+
+	}
+	
+	AddBuffer(outVerts, outIndices);
+
+	
+	return true;
 }

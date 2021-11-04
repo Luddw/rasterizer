@@ -136,10 +136,13 @@ namespace Example
 
 			glGenTextures(1, &tex_h);
 			
-			//r.LoadOBJModel("./resources/suz2.obj");
+			//r.LoadOBJModel("./resources/cube.obj");
+			//r.OBJLoad("./resources/suzanne.obj");
+			r.OBJLoad("./resources/cube.obj");
 			//r.LoadOBJModel("./resources/cubeuv.obj");
-			r.OBJLoad("./resources/cubeuv.obj");
-			r.Draw(1);
+			//r.OBJLoad("./resources/cubeuv.obj");
+			//r.AddCube(1.0f);
+			r.Draw(0);
 			glBindTexture(GL_TEXTURE_2D, tex_h);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -215,7 +218,7 @@ namespace Example
 		{
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			r.ClearFB();
-			r.Draw(1);
+			r.Draw(0);
 			r.UpdateQuadTex(tex_h);
 			quadShader.Bind();
 			glActiveTexture(GL_TEXTURE0);
