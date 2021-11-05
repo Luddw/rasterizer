@@ -138,7 +138,7 @@ namespace Example
 			
 			//r.LoadOBJModel("./resources/cube.obj");
 			//r.OBJLoad("./resources/suzanne.obj");
-			r.OBJLoad("./resources/cube.obj");
+
 			//r.LoadOBJModel("./resources/cubeuv.obj");
 			//r.OBJLoad("./resources/cubeuv.obj");
 			//r.AddCube(1.0f);

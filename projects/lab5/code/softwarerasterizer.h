@@ -163,6 +163,8 @@ public:
 	void AddCube(float size);
 	bool OBJLoad(const char* filename);
 	bool LoadOBJFile(const char * filepath);
+	std::vector<Vertex> OBJLoader(const char* filepath);
+	std::vector<Vertex> GetMesh();
 private:
 	void FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2);
 	void FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2);
@@ -178,7 +180,7 @@ private:
 	std::function<VertexOut(Vertex)> vertex_shader; 
 	std::function<Pixel(VertexOut&, Texture&)> frag_shader;
 
-
+	std::vector<Vertex> model;
 	std::vector<BufferObject> buffer_handles;
 	float width_offset;
 	float height_offset;

@@ -27,9 +27,8 @@ Renderer::Renderer(const int width, const int height)
 	height_offset = height / 2.0f;    
 	width_offset = width / 2.0f;    
 	SetupFrameBuffer(width, height);
+	model = OBJLoader("./resources/cube.obj");
 
-
-	
 	Texture meshTex("./resources/error.png");
 	texture = meshTex;  
 
@@ -39,10 +38,10 @@ Renderer::Renderer(const int width, const int height)
 		vec4 t_pos(inVert.pos.x, inVert.pos.y, inVert.pos.z, 1.0);
 		
 
-		mat4 translation(	1,0,1,0,
+		mat4 translation(	1,0,0,0,
 							0,1,0,0,
 							0,0,1,0,
-							0,0,-1,1
+							0,0,0,1
 
 		);
 		// mat4 scale(
@@ -54,9 +53,9 @@ Renderer::Renderer(const int width, const int height)
 		// );
 		mat4 scale(
 
-							vec4(0.5,0,0,0),
-							vec4(0,0.5,0,0),
-							vec4(0,0,0.5,0),
+							vec4(0.25,0,0,0),
+							vec4(0,0.25,0,0),
+							vec4(0,0,0.25,0),
 							vec4(0,0,0,1)
 		);
 		mat4 roty = rotationy(staticRotation);
@@ -69,48 +68,80 @@ Renderer::Renderer(const int width, const int height)
 		mat4 view = lookat(vec3(0,0,1), vec3(0,0,-1), vec3(0,1,0));
 		mat4 proj = perspectiveprojection(pi/2.0f, 4.0f/3.0f, 0.1f, 100.0f);
 
-		t_pos = model * t_pos;
+		t_pos = transform(t_pos, model);
 		t_pos = transform(t_pos, view);
 		t_pos = transform(t_pos, proj);
 
 
 		//vec3 fragment_pos = vec3(model * vec4(inVert.pos.x, inVert.pos.x, inVert.pos.x, 1.0));
-		vec4 modelspacenormal = model * vec4(inVert.normal.x, inVert.normal.y, inVert.normal.z, 1.0f);
+		vec4 modelspacenormal = transpose(inverse(model)) * vec4(inVert.normal.x, inVert.normal.y, inVert.normal.z, 1.0f);
 		vec3 mspacenormal(modelspacenormal);
 
-		return {t_pos, inVert.uv, inVert.normal};
+		return {t_pos, inVert.uv, mspacenormal};
 	});
 
 	SetFragmentShader([&](VertexOut& inVert, Texture& tex) -> Pixel {
-		Pixel texcol;
-		vec3 lightcolor(254,254,254);
-		vec3 light_pos(1,1,0);
-		vec3 cam_pos(0,0,1);
-		texcol = tex.GetColor(inVert.uv);
-		vec3 texture_color(texcol.r,texcol.g,texcol.b);
-		float intensity = 0.9f;
-
-		vec3 ambient = lightcolor * intensity;
-		vec3 frag_norm = normalize(inVert.normal);
-		vec3 light_direction = normalize(light_pos - inVert.pos);
-
-		float diffuse_intensity = fmax(dot(frag_norm, light_direction), 0.0f);
-
-		vec3 diffuse = lightcolor * diffuse_intensity;
+		vec3 lightColor(0.9,0.9,0.9);
 		
-		float specular_intensity = 0.5f;
-		vec3 view_direction = normalize(cam_pos - inVert.pos);
-		vec3 halfway_direction = normalize(light_direction + view_direction);
-		float specular_value = pow(fmax(dot(frag_norm, halfway_direction), 0.0f), 32);
+		vec3 lightPos(1,0,0);
+		vec3 viewPos(0,0,1);
 
-		vec3 specular = lightcolor * specular_intensity * specular_value;
+		Pixel texcol = Pixel{0,0,255,255};/*tex.GetColor(inVert.uv);*/
+		vec3 col = vec3(texcol.r/255.0f,texcol.g/255.0f, texcol.b/255.0f);
+		vec3 ambient = lightColor * 0.1;
 
-		vec3 finalcolor(ambient + diffuse + specular);
-		finalcolor = mul(finalcolor, texture_color);
-		Pixel out(finalcolor.x * 255, finalcolor.x * 255,finalcolor.x * 255, 255);
-		out = Pixel(inVert.normal.x * 255, inVert.normal.y * 255, inVert.normal.z * 255, 255);
-		//out = Pixel(inVert.uv.x * 255, inVert.uv.y * 255, inVert.uv.z * 255, 255);
-		return out;
+		vec3 lightDir = normalize(lightPos - inVert.pos);
+		vec3 normal = normalize(inVert.normal);
+		float diff = fmax(dot(lightDir, normal), 0.0f);
+		vec3 diffuse = lightColor * diff;
+
+		vec3 viewDir = normalize(viewPos - inVert.pos);
+		vec3 reflectDir = reflect(-lightDir, normal);
+		float spec = 0.0f;
+
+		vec3 halfwayDir = normalize(lightDir + viewDir);
+		spec = pow(fmax(dot(normal, halfwayDir), 0.0f), 32.0);
+		vec3 specular = lightColor * spec;
+
+
+		vec3 ambDiffSpec = ambient + diffuse + specular;
+		ambDiffSpec = mul(ambDiffSpec, col);
+		vec4 FragCol = vec4(ambDiffSpec.x, ambDiffSpec.y, ambDiffSpec.z, 1.0f);
+
+		Pixel outColor{FragCol.x*255, FragCol.y*255, FragCol.z*255, FragCol.w *255};
+
+		return outColor;
+
+
+
+		// vec3 lightcolor(1,1,1);
+		// vec3 light_pos(1,1,0);
+		// vec3 cam_pos(0,0,1);
+		
+		// vec3 texture_color(texcol.r,texcol.g,texcol.b);
+		// float intensity = 0.9f;
+
+		// vec3 ambient = lightcolor * intensity;
+		// vec3 frag_norm = normalize(inVert.normal);
+		// vec3 light_direction = normalize(light_pos - inVert.pos);
+
+		// float diffuse_intensity = fmax(dot(frag_norm, light_direction), 0.0f);
+
+		// vec3 diffuse = lightcolor * diffuse_intensity;
+		
+		// float specular_intensity = 0.5f;
+		// vec3 view_direction = normalize(cam_pos - inVert.pos);
+		// vec3 halfway_direction = normalize(light_direction + view_direction);
+		// float specular_value = pow(fmax(dot(frag_norm, halfway_direction), 0.0f), 32);
+
+		// vec3 specular = lightcolor * specular_intensity * specular_value;
+
+		// vec3 finalcolor(ambient + diffuse + specular);
+		// finalcolor = mul(finalcolor, texture_color);
+		// Pixel out(finalcolor.x * 255, finalcolor.x * 255,finalcolor.x * 255, 255);
+		// //out = Pixel(inVert.normal.x * 255, inVert.normal.y * 255, inVert.normal.z * 255, 255);
+		// //out = Pixel(frag_norm.x * 255, frag_norm.y * 255, frag_norm.z * 255, 255);
+		// return out;
 	});
 }
 
@@ -122,16 +153,37 @@ Renderer::~Renderer()
 
 void Renderer::Draw(unsigned int handle)
 {
-	BufferObject object = buffer_handles.at(handle);
-	size_t vbuffsize = object.v_buffer.size();
-	VertexOut* outVert = new VertexOut[vbuffsize];
+	// BufferObject object = buffer_handles.at(handle);
+	// size_t vbuffsize = object.v_buffer.size();
+	// VertexOut* outVert = new VertexOut[vbuffsize];
 
-	for (size_t i = 0; i < object.v_buffer.size(); i++)
+
+
+	// for (size_t i = 0; i < object.v_buffer.size(); i++)
+	// {
+	// 	outVert[i] = vertex_shader(object.v_buffer[i]);
+
+	// }
+	// for (size_t i = 0; i < object.v_buffer.size(); i+=3)
+	// {
+	// 	if (Cull(outVert[i].pos, outVert[i+1].pos, outVert[i+2].pos))
+	// 		continue;
+
+	// 	ToScreenSpace(outVert[i].pos);
+	// 	ToScreenSpace(outVert[i+1].pos);
+	// 	ToScreenSpace(outVert[i+2].pos);
+
+	// 	TriangleRaster(outVert[i], outVert[i+1], outVert[i+2]);
+	// }
+	std::vector<Vertex> mesh = GetMesh();
+	VertexOut* outVert = new VertexOut[mesh.size()];
+
+	for (size_t i = 0; i < mesh.size(); i++)
 	{
-		outVert[i] = vertex_shader(object.v_buffer[i]);
-
+		outVert[i] = vertex_shader(mesh[i]);
+		//printf("%f	%f	%f \n", outVert[i].normal.x, outVert[i].normal.y, outVert[i].normal.z);
 	}
-	for (size_t i = 0; i < object.v_buffer.size(); i+=3)
+	for (size_t i = 0; i < mesh.size(); i+=3)
 	{
 		if (Cull(outVert[i].pos, outVert[i+1].pos, outVert[i+2].pos))
 			continue;
@@ -399,9 +451,9 @@ void Renderer::ClearFB()
 {
 	for (size_t i = 0; i < fb_height*fb_width; i++)
 	{
-		frame_buffer[i].r = 200;
-		frame_buffer[i].g = 200; 
-		frame_buffer[i].b = 254; 
+		frame_buffer[i].r = 0;
+		frame_buffer[i].g = 0; 
+		frame_buffer[i].b = 0; 
 		frame_buffer[i].a = 254; 
 		depth_buffer[i] = -std::numeric_limits<float>::infinity();
 
@@ -516,10 +568,10 @@ void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const V
 
 
 
-			if (depth_buffer[int(P.pos.x + P.pos.y * fb_width)] < P.pos.z)
+			if (depth_buffer[int(x + y * fb_width)] < P.pos.z)
 			{
 				
-				depth_buffer[int(P.pos.x + P.pos.y * fb_width)] = P.pos.z;
+				depth_buffer[int(x + y * fb_width)] = P.pos.z;
 				PlacePixel(P.pos.x, P.pos.y, frag_shader(P, texture));
 			}
 			
@@ -569,9 +621,9 @@ void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, cons
 			P.pos.x = x;
 			P.pos.y = y;
 
-			if (depth_buffer[int(P.pos.x + P.pos.y * fb_width)] < P.pos.z)
+			if (depth_buffer[int(x + y * fb_width)] < P.pos.z)
 			{
-				depth_buffer[int(P.pos.x + P.pos.y * fb_width)] = P.pos.z;
+				depth_buffer[int(x + y * fb_width)] = P.pos.z;
 				PlacePixel(P.pos.x, P.pos.y, frag_shader(P, texture));
 			}
 			
@@ -720,4 +772,97 @@ bool Renderer::LoadOBJModel(std::string filename)
 
 	
 	return true;
+}
+
+
+std::vector<Vertex> Renderer::OBJLoader(const char* filepath)
+{
+	std::vector<vec3> positions;
+	std::vector<vec3> texcoords;
+	std::vector<vec3> normals;
+
+	std::vector<unsigned int> posIndices;
+	std::vector<unsigned int> uvIndices;
+	std::vector<unsigned int> normalIndices;
+
+	std::vector<Vertex> vertices;
+	std::vector<unsigned int> indices;
+
+	std::stringstream ss;
+	std::ifstream fileStream(filepath);
+	std::string line = "";
+	std::string attrib = "";
+	vec3 tempVec3;
+	unsigned int tempUint = 0;
+
+
+	while (std::getline(fileStream, line))
+	{
+		ss.clear();
+		ss.str(line);
+		ss >> attrib;
+
+		if (attrib == "v")
+		{
+			ss >> tempVec3.x >> tempVec3.y >> tempVec3.z;
+			positions.push_back(tempVec3);
+		}
+		else if (attrib == "vt")
+		{
+			ss >> tempVec3.x >> tempVec3.y >> tempVec3.z;
+			texcoords.push_back(tempVec3);
+		}
+		else if (attrib == "vn")
+		{
+			ss >> tempVec3.x >> tempVec3.y >> tempVec3.z;
+			normals.push_back(tempVec3);
+		}
+		else if (attrib == "f")
+		{
+			int count = 0;
+			while (ss >> tempUint)
+			{
+				if(count == 0)
+					posIndices.push_back(tempUint);
+				else if(count == 1)
+					uvIndices.push_back(tempUint);
+				else if(count == 2)
+					normalIndices.push_back(tempUint);
+				
+				if(ss.peek() == '/')
+				{
+					++count;
+					ss.ignore(1, '/');
+				}
+				else if (ss.peek() == ' ')
+				{
+					++count;
+					ss.ignore(1, ' ');
+				}
+				
+				if(count > 2)
+					count = 0;
+			}
+		} 
+
+		vertices.resize(posIndices.size(), Vertex());
+
+		for (size_t i = 0; i < vertices.size(); i++)
+		{
+			vertices[i].pos = positions[posIndices[i]-1];
+			vertices[i].uv = texcoords[uvIndices[i]-1];
+			vertices[i].normal = normals[normalIndices[i]-1];
+			//indices.push_back(i);
+		}
+		
+
+	}
+
+
+	return vertices;
+}
+
+std::vector<Vertex> Renderer::GetMesh()
+{
+	return this->model;
 }
