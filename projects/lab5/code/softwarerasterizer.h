@@ -28,19 +28,6 @@ struct BufferObject
 	};
 };		
 
-
-// struct Pixel
-// {
-// 	unsigned char r = 0;
-// 	unsigned char g = 0;
-// 	unsigned char b = 0;
-// 	unsigned char a = 255;
-// 	Pixel(unsigned char red, unsigned char green, unsigned char blu, unsigned char alf) : r(red), g(green), b(blu), a(alf) {};
-// 	Pixel() {};
-
-// };
-
-
 struct Point
 {
 	float xpos;
@@ -94,12 +81,14 @@ struct VertexOut
 	vec4 pos;
 	vec3 uv;
 	vec3 normal;
+	vec3 frag_pos;
 	VertexOut Interpolate(const VertexOut& target, float alpha) const
 	{
 		return {
 				pos.interpolate(target.pos, alpha),
 				uv.interpolate(target.uv, alpha),
 				normal.interpolate(target.normal, alpha),
+				frag_pos.interpolate(target.frag_pos, alpha)
 		};
 
 	}
@@ -111,19 +100,9 @@ struct VertexOBJref
 	int v, vt, vn;
 };
 
-struct Triangle
-{
-	Vertex v0;
-	Vertex v1;
-	Vertex v2;
-	bool culled;
-};
 
-struct ModelMesh
-{
-	std::vector<Triangle> faces;
-	std::vector<unsigned int> indexBuffer;
-};
+
+
 
 class Renderer
 {
@@ -160,9 +139,7 @@ public:
 	bool Cull(vec4 v0, vec4 v1, vec4 v2) const;
 	void SetTexture(Texture tex);
 	VertexOut ApplyWeights(VertexOut v0, VertexOut v1, VertexOut v2, vec3 weights);
-	void AddCube(float size);
-	bool OBJLoad(const char* filename);
-	bool LoadOBJFile(const char * filepath);
+
 	std::vector<Vertex> OBJLoader(const char* filepath);
 	std::vector<Vertex> GetMesh();
 private:

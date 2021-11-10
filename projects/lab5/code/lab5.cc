@@ -130,18 +130,7 @@ namespace Example
 			this->window->GetSize(w, h);
 			r = Renderer(w, h);
 
-
-
-
-
 			glGenTextures(1, &tex_h);
-			
-			//r.LoadOBJModel("./resources/cube.obj");
-			//r.OBJLoad("./resources/suzanne.obj");
-
-			//r.LoadOBJModel("./resources/cubeuv.obj");
-			//r.OBJLoad("./resources/cubeuv.obj");
-			//r.AddCube(1.0f);
 			r.Draw(0);
 			glBindTexture(GL_TEXTURE_2D, tex_h);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -162,38 +151,7 @@ namespace Example
 	/**
 	*/
 
-// 	struct VertexOutput
-// 	{
-// 		Vector4D position;
-// 	};
 
-// 	struct VertexPBROutput
-// 	{
-// 		Vector4D position;
-// 		int a;
-// 	};
-
-// // class Rasterizer
-// {
-// 	std::function<void(Vertex, void*)> vertex;
-// 	std::function<void(Vertex, void*)> fragment;
-
-// 	void Render(){
-// 	vertex = [](Vertex v, void* data){
-// 			VertexPBROutput* output = (VertexPBROutput*)data;
-// 			output->position = v.pos;
-// 		};
-// 		auto fragment = [](void* data){
-// 			VertexPBROutput* input = (VertexPBROutput*)data;
-// 			input->position;
-// 			return color;
-// 		};
-
-// 		void* vertexOutput = malloc(1024);
-// 		vertex(Vertex(), vertexOutput);
-
-// 	}
-// }
 	
 
 	void
