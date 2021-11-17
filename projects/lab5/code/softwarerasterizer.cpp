@@ -28,7 +28,7 @@ Renderer::Renderer(const int width, const int height)
 	texture = meshTex;  
 
 
-
+	// vertex Shader
 	SetVertextShader([&](Vertex inVert) -> VertexOut {
 		vec4 t_pos(inVert.pos.x, inVert.pos.y, inVert.pos.z, 1.0);
 		
@@ -69,6 +69,8 @@ Renderer::Renderer(const int width, const int height)
 		return {t_pos, inVert.uv, mspacenormal, fragPos};
 	});
 
+
+	// Fragment Shader
 	SetFragmentShader([&](VertexOut& inVert, Texture& tex) -> Pixel {
 		//vec3 lightColor(0.9,0.9,0.9);
 		vec3 lightColor(0.3,0.3,0.3);
@@ -187,7 +189,7 @@ int Renderer::GetWidth()
 	return fb_width;
 }
 
-//save framebuffer as png in running directory
+//save framebuffer as png
 void Renderer::SaveFB()
 {
 	stbi_flip_vertically_on_write(true);
@@ -419,7 +421,7 @@ vec4& Renderer::ToScreenSpace(vec4& vec)
 
 	vec.x = (vec.x + 1.0f) * width_offset; 
 	vec.y = (vec.y + 1.0f) * height_offset; 
-	vec.z = (vec.y + 1.0f); 
+	vec.z = (vec.z + 1.0f); 
 
 	return vec;
 }
