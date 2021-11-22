@@ -7,7 +7,7 @@ Texture::Texture(const std::string &path) :  tex_handle(0),filepath(path), local
 {
 	stbi_set_flip_vertically_on_load(true);
 
-	localbuf = stbi_load(path.c_str(),&widht,&height,&bpp, 4);
+	localbuf = stbi_load(path.c_str(),&widht,&height,&bpp, STBI_rgb);
 	if (localbuf == nullptr)
 		std::cout << "Texture file failed to load" << std::endl;
 
@@ -20,13 +20,13 @@ Texture::Texture(const std::string &path) :  tex_handle(0),filepath(path), local
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_CLAMP);
-
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,widht,height,0,GL_RGBA,GL_UNSIGNED_BYTE,localbuf);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D,0);
 	
-	if (localbuf) //clears img data
-		stbi_image_free(localbuf);
+	// if (localbuf) //clears img data
+	// 	stbi_image_free(localbuf);
 
 }
 
@@ -94,14 +94,15 @@ void Texture::Unbind()
 Pixel Texture::GetColor(vec3& uvCoord)
 {
 	// fetch position in the texture's buffer, offsetted by bits per pixel
-	const unsigned int x =  fmax(fmin(uvCoord.x * widht, widht), 0);
-	const unsigned int y = fmax(fmin(uvCoord.y * height, height), 0);
+	const unsigned int x =  (int)(uvCoord.x * widht) % widht;
+	const unsigned int y = (int)(uvCoord.y * height) % height;
 	const unsigned char* imageColor = &localbuf[(x + y * widht) * bpp];
 	
 	return {
 		imageColor[0],
 		imageColor[1],
 		imageColor[2],
-		bpp == 4 ? imageColor[4] : (unsigned char)0xFF
+		//bpp == 4 ? imageColor[4] : (unsigned char)0xFF//
+		0xFF
 	};
 }

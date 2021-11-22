@@ -65,13 +65,10 @@ struct Point
 
 struct Line
 {
-	int dx, dy;
-	Point start;
-	Point end;
-	Line(Point p1, Point p2) : start(p1), end(p2) {
-		dx = std::abs(p2.xpos - p1.xpos);
-		dy = std::abs(p2.ypos - p1.ypos); 
-	};
+	VertexOut p0;
+	VertexOut p1;
+	std::vector<vec3> plots;
+
 };
 
 
@@ -126,7 +123,7 @@ public:
 	void RasterizeTriangle(vec3 v0, vec3 v1, vec3 v2, Pixel colour);
 	void BarRasterizeTriangle(VertexOut* points, Pixel colour);
 	void SetModelViewProjectionMatrix(const mat4 &mvp);
-    void DrawLine(vec3 p1, vec3 p2);
+    Line DrawLine(VertexOut p1, VertexOut p2);
 	void SaveFB();
 	bool LoadOBJModel(std::string filename);
 	void UpdateQuadTex(GLuint handle);

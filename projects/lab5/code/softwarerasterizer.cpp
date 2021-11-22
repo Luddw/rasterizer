@@ -24,7 +24,7 @@ Renderer::Renderer(const int width, const int height)
 	width_offset = width / 2.0f;    
 	SetupFrameBuffer(width, height);
 	model = OBJLoader("./resources/cube.obj");
-	Texture meshTex("./resources/error.png");
+	Texture meshTex("./resources/mariocube.png");
 	texture = meshTex;  
 
 
@@ -79,8 +79,8 @@ Renderer::Renderer(const int width, const int height)
 		vec3 lightPos(1,0.2,1);
 		vec3 viewPos(0,0,1);
 
-		Pixel texcol = /*Pixel{0,0,255,255};*/ tex.GetColor(inVert.uv);
-		texcol = Pixel{0,0,255,255};
+		Pixel texcol = /*Pixel{0,0,255,255};*/tex.GetColor(inVert.uv); 
+		//texcol = Pixel{0,0,255,255};
 		vec3 col = vec3(texcol.r/255.0f,texcol.g/255.0f, texcol.b/255.0f);
 		vec3 ambient = col * 0.05;
 
@@ -98,9 +98,12 @@ Renderer::Renderer(const int width, const int height)
 		vec3 specular = (lightColor * spec) * spec;
 
 
-		vec3 ambDiffSpec = ambient + diffuse + specular;
+		vec3 ambDiffSpec = ambient + diffuse + specular*2;
 		ambDiffSpec = mul(ambDiffSpec, col);
 		vec4 FragCol = vec4(ambDiffSpec.x, ambDiffSpec.y, ambDiffSpec.z, 1.0f);
+		FragCol.x = fmin(FragCol.x, 1.0f);
+		FragCol.y = fmin(FragCol.y, 1.0f);
+		FragCol.z = fmin(FragCol.z, 1.0f);
 
 		Pixel outColor{FragCol.x*255, FragCol.y*255, FragCol.z*255, FragCol.w *255};
 
@@ -198,44 +201,47 @@ void Renderer::SaveFB()
 }
 
 //bresenham line function 
-void Renderer::DrawLine(vec3 p1, vec3 p2)
+Line Renderer::DrawLine(VertexOut p1, VertexOut p2)
 {
+	Line bresenLine;
     bool isSteep = false;
 
-    if (std::abs(p1.x - p2.x) < std::abs(p1.y - p2.y))
+    if (std::abs(p1.pos.x - p2.pos.x) < std::abs(p1.pos.y - p2.pos.y))
     {
-        std::swap(p1.x, p1.y);
-        std::swap(p2.x, p2.y);
+        std::swap(p1.pos.x, p1.pos.y);
+        std::swap(p2.pos.x, p2.pos.y);
         isSteep = true;
     }
 
-    if (p1.x > p2.x) // switch to left-to-right
+    if (p1.pos.x > p2.pos.x) // switch to left-to-right
     {
-        std::swap(p1.x, p2.x);
-        std::swap(p1.y, p2.y);
+        std::swap(p1.pos.x, p2.pos.x);
+        std::swap(p1.pos.y, p2.pos.y);
     }
 
-    int dx = p2.x - p1.x;
-    int dy = p2.y - p1.y;
+    int dx = p2.pos.x - p1.pos.x;
+    int dy = p2.pos.y - p1.pos.y;
     int dError = std::abs(dy) * 2;
     int error = 0;
-    int y = p1.y;
+    int y = p1.pos.y;
 
-    for (size_t x = p1.x; x <= p2.x; x++)
+    for (size_t x = p1.pos.x; x <= p2.pos.x; x++)
     {
         
         if (isSteep)
-            PlacePixel(y, x, Pixel(0,0,0,255));
+			bresenLine.plots.emplace_back(x, y, 0);
         else
-            PlacePixel(x, y, Pixel(0,255,0,255));
+            bresenLine.plots.emplace_back(y, x, 0);
 
         error += dError;
         if (error > dx)
         {
-            y += (p2.y > p1.y ? 1 : -1);
+            y += (p2.pos.y > p1.pos.y ? 1 : -1);
             error -= dx * 2;
         }    
     }
+
+	return bresenLine;
 }
 
 void Renderer::UpdateQuadTex(GLuint handle)
@@ -361,43 +367,84 @@ void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const V
 
 void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2)
 {
-	// calc line slopes in screen-space
-	float m0 = (v1.pos.x - v0.pos.x) / (v1.pos.y - v0.pos.y);
-	float m1 = (v2.pos.x - v0.pos.x) / (v2.pos.y - v0.pos.y);
+	// // calc line slopes in screen-space
+	// float m0 = (v1.pos.x - v0.pos.x) / (v1.pos.y - v0.pos.y);
+	// float m1 = (v2.pos.x - v0.pos.x) / (v2.pos.y - v0.pos.y);
 
-	// start and end for scanlines
-	int scan_start = (int)ceil(v0.pos.y );
-	int scan_end = (int)ceil(v2.pos.y );
+	// // start and end for scanlines
+	// int scan_start = (int)ceil(v0.pos.y );
+	// int scan_end = (int)ceil(v2.pos.y );
+
+	// VertexOut P;
+	// for (int y = scan_start; y < scan_end; y++)
+	// {
+	// 	// scanline start X
+	// 	float px0 = m0 * (float(y) - v0.pos.y) + v0.pos.x;
+	// 	float px1 = m1 * (float(y)  - v0.pos.y) + v0.pos.x;
+
+	// 	// start, end pixels
+	// 	int pix_start = (int)ceil(px0 );
+	// 	int pix_end = (int)ceil(px1 );
+
+	// 	for (int x = pix_start; x < pix_end; x++)
+	// 	{
+
+	// 		P.pos.x = x;
+	// 		P.pos.y = y;
+	// 		vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
+
+	// 		P = ApplyWeights(v0, v1, v2, weights);
+	// 		P.pos.x = x;
+	// 		P.pos.y = y;
+
+	// 		if (depth_buffer[int(x + y * fb_width)] < P.pos.z)
+	// 		{
+	// 			depth_buffer[int(x + y * fb_width)] = P.pos.z;
+	// 			PlacePixel(P.pos.x, P.pos.y, frag_shader(P, texture));
+	// 		}
+	// 	}
+	// }
+
+	// slopes between vertices
+	Line v0v1 = DrawLine(v0,v1);
+	Line v0v2 = DrawLine(v0,v2);
 
 	VertexOut P;
-	for (int y = scan_start; y < scan_end; y++)
+	// scanline start end pos
+	VertexOut b0;
+	VertexOut b1;
+
+
+	for (int y = v0.pos.y; y < v2.pos.y; y++)
 	{
-		// scanline start X
-		float px0 = m0 * (float(y) - v0.pos.y) + v0.pos.x;
-		float px1 = m1 * (float(y)  - v0.pos.y) + v0.pos.x;
 
-		// start, end pixels
-		int pix_start = (int)ceil(px0 );
-		int pix_end = (int)ceil(px1 );
+		b0.pos.x = v0.pos.x - v1.pos.x;
+		b1.pos.x = v2.pos.x - v1.pos.x;
+		b0.pos.y = y;
+		b1.pos.y = y;
+		Line scanLine = DrawLine(b0, b1);
 
-		for (int x = pix_start; x < pix_end; x++)
+		for (auto pix : scanLine.plots)
 		{
-
-			P.pos.x = x;
-			P.pos.y = y;
+			
+			P.pos.x = pix.x;
+			P.pos.y = pix.y;
 			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
 
 			P = ApplyWeights(v0, v1, v2, weights);
-			P.pos.x = x;
-			P.pos.y = y;
+			P.pos.x = pix.x;
+			P.pos.y = pix.y;
 
-			if (depth_buffer[int(x + y * fb_width)] < P.pos.z)
+			if (depth_buffer[int(pix.x + pix.y * fb_width)] < P.pos.z)
 			{
-				depth_buffer[int(x + y * fb_width)] = P.pos.z;
+				depth_buffer[int(pix.x + pix.y * fb_width)] = P.pos.z;
 				PlacePixel(P.pos.x, P.pos.y, frag_shader(P, texture));
 			}
 		}
 	}
+
+	
+
 }
 
 VertexOut Renderer::ApplyWeights(VertexOut v0, VertexOut v1, VertexOut v2, vec3 weights)
