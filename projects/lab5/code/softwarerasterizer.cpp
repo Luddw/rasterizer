@@ -136,6 +136,7 @@ void Renderer::Draw(unsigned int handle)
 		ToScreenSpace(outVert[i+2].pos);
 
 		TriangleRaster(outVert[i], outVert[i+1], outVert[i+2]);
+		//Triangle(outVert[i], outVert[i+1], outVert[i+2]);
 	}
 	
 	staticRotation += 0.01f;
@@ -152,8 +153,9 @@ void Renderer::SetupFrameBuffer(int width, int height)
 {
 	frame_buffer = new Pixel[width * height];
 	depth_buffer = new float[width * height];
-	for (size_t i = 0; i < width * height; i++)
-		depth_buffer[i] = -std::numeric_limits<float>::max();
+	memset(depth_buffer, -std::numeric_limits<float>::max(), sizeof(depth_buffer));
+	// for (size_t i = 0; i < width * height; i++)
+	// 	depth_buffer[i] = -std::numeric_limits<float>::max();
 }
 
 Pixel * Renderer::GetFramebuffer()
@@ -201,31 +203,31 @@ void Renderer::SaveFB()
 }
 
 //bresenham line function 
-Line Renderer::DrawLine(VertexOut p1, VertexOut p2)
+Line Renderer::DrawLine(vec3 p1, vec3 p2)
 {
 	Line bresenLine;
     bool isSteep = false;
 
-    if (std::abs(p1.pos.x - p2.pos.x) < std::abs(p1.pos.y - p2.pos.y))
+    if (std::abs(p1.x - p2.x) < std::abs(p1.y - p2.y))
     {
-        std::swap(p1.pos.x, p1.pos.y);
-        std::swap(p2.pos.x, p2.pos.y);
+        std::swap(p1.x, p1.y);
+        std::swap(p2.x, p2.y);
         isSteep = true;
     }
 
-    if (p1.pos.x > p2.pos.x) // switch to left-to-right
+    if (p1.x > p2.x) // switch to left-to-right
     {
-        std::swap(p1.pos.x, p2.pos.x);
-        std::swap(p1.pos.y, p2.pos.y);
+        std::swap(p1.x, p2.x);
+        std::swap(p1.y, p2.y);
     }
 
-    int dx = p2.pos.x - p1.pos.x;
-    int dy = p2.pos.y - p1.pos.y;
+    int dx = p2.x - p1.x;
+    int dy = p2.y - p1.y;
     int dError = std::abs(dy) * 2;
     int error = 0;
-    int y = p1.pos.y;
+    int y = p1.y;
 
-    for (size_t x = p1.pos.x; x <= p2.pos.x; x++)
+    for (size_t x = p1.x; x <= p2.x; x++)
     {
         
         if (isSteep)
@@ -236,13 +238,15 @@ Line Renderer::DrawLine(VertexOut p1, VertexOut p2)
         error += dError;
         if (error > dx)
         {
-            y += (p2.pos.y > p1.pos.y ? 1 : -1);
+            y += (p2.y > p1.y ? 1 : -1);
             error -= dx * 2;
         }    
     }
 
 	return bresenLine;
 }
+
+
 
 void Renderer::UpdateQuadTex(GLuint handle)
 {
@@ -252,11 +256,12 @@ void Renderer::UpdateQuadTex(GLuint handle)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexSubImage2D(GL_TEXTURE_2D,0,0,0,fb_width,fb_height,GL_RGBA,GL_UNSIGNED_BYTE, frame_buffer);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0); 
 }
 
 void Renderer::ClearFB()
 {
+
 	for (size_t i = 0; i < fb_height*fb_width; i++)
 	{
 		frame_buffer[i].r = 0;
@@ -267,12 +272,6 @@ void Renderer::ClearFB()
 	}
 }
 
-void Renderer::WireFrame(vec3 v0, vec3 v1, vec3 v2)
-{
-	DrawLine(v0, v1);
-	DrawLine(v1, v2);
-	DrawLine(v2, v0);
-}
 
 void Renderer::TriangleRaster(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2)
 {
@@ -327,41 +326,75 @@ void Renderer::TriangleRaster(const VertexOut& v0, const VertexOut& v1, const Ve
 
 void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2)
 {
-	// calc line slopes in screen-space
-	float m0 = (v2.pos.x - v0.pos.x) / (v2.pos.y - v0.pos.y);
-	float m1 = (v2.pos.x - v1.pos.x) / (v2.pos.y - v1.pos.y);
+	// // calc line slopes in screen-space
+	// float m0 = (v2.pos.x - v0.pos.x) / (v2.pos.y - v0.pos.y);
+	// float m1 = (v2.pos.x - v1.pos.x) / (v2.pos.y - v1.pos.y);
 
-	// start and end for scanlines
-	int scan_start = (int)ceil(v0.pos.y );
-	int scan_end = (int)ceil(v2.pos.y );
+	// int dx0x1 = v1.pos.x - v0.pos.x;
+	// int dx0x2 = v2.pos.x - v0.pos.x;
 
-	VertexOut P;
-	for (int y = scan_start; y < scan_end; y++)
+	// int dy0y1 = v1.pos.y - v0.pos.y;
+	// int dy0y2 = v2.pos.y - v0.pos.y;
+
+	// int sloap1 = 2*dy0y1 - dx0x1;
+	// int sloap2 = 2*dy0y2 - dx0x2;
+
+	// //int y = v0.pos.y;
+
+	// // start and end for scanlines
+	// int scan_start = v0.pos.y;
+	// int scan_end = v2.pos.y;
+
+	// VertexOut P;
+	// for (int y = scan_start; y < scan_end; y++)
+	// {
+	// 	// scanline start X
+	// 	float px0 = m0 * (float(y)  - v0.pos.y) + v0.pos.x;
+	// 	float px1 = m1 * (float(y) - v1.pos.y) + v1.pos.x;
+
+	// 	int startX = 0;
+
+	// 	// start, end pixels
+	// 	int pix_start = (int)ceil(px0 );
+	// 	int pix_end = (int)ceil(px1 );
+
+	// 	for (int x = pix_start; x < pix_end; x++)
+	// 	{
+
+	// 		P.pos.x = x;
+	// 		P.pos.y = y;
+	// 		vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
+
+	// 		P = ApplyWeights(v0, v1, v2, weights);
+	// 		P.pos.x = x;
+	// 		P.pos.y = y;
+
+	// 		if (depth_buffer[int(x + y * fb_width)] < P.pos.z)
+	// 		{
+	// 			depth_buffer[int(x + y * fb_width)] = P.pos.z;
+	// 			PlacePixel(P.pos.x, P.pos.y, frag_shader(P, texture));
+	// 		}
+	// 	}
+	// }
+
+	Line line_0_1 = DrawLine(v0.pos, v2.pos);
+	Line line_0_2 = DrawLine(v1.pos, v2.pos);
+
+	Line scanline;
+
+	for (size_t i = 0; i < line_0_1.plots.size(); i++)
 	{
-		// scanline start X
-		float px0 = m0 * (float(y)  - v0.pos.y) + v0.pos.x;
-		float px1 = m1 * (float(y) - v1.pos.y) + v1.pos.x;
-
-		// start, end pixels
-		int pix_start = (int)ceil(px0 );
-		int pix_end = (int)ceil(px1 );
-
-		for (int x = pix_start; x < pix_end; x++)
+		if (line_0_1.plots[i].y == line_0_2.plots[i].y)
 		{
-			P.pos.x = x;
-			P.pos.y = y;
-			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
-
-			P = ApplyWeights(v0, v1, v2, weights);
-			P.pos.x = x;
-			P.pos.y = y;
-
-			if (depth_buffer[int(x + y * fb_width)] < P.pos.z)
+			scanline = DrawLine(line_0_1.plots[i], line_0_2.plots[i]);
+			for (auto plot : scanline.plots)
 			{
-				depth_buffer[int(x + y * fb_width)] = P.pos.z;
-				PlacePixel(P.pos.x, P.pos.y, frag_shader(P, texture));
+				PlacePixel(plot.x, plot.y, Pixel{255, 255, 255, 255});
 			}
+			
 		}
+		
+
 	}
 }
 
@@ -405,47 +438,85 @@ void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, cons
 	// 	}
 	// }
 
-	// slopes between vertices
-	Line v0v1 = DrawLine(v0,v1);
-	Line v0v2 = DrawLine(v0,v2);
-
-	VertexOut P;
-	// scanline start end pos
-	VertexOut b0;
-	VertexOut b1;
 
 
-	for (int y = v0.pos.y; y < v2.pos.y; y++)
+	Line line_0_1 = DrawLine(v0.pos, v1.pos);
+	Line line_0_2 = DrawLine(v0.pos, v2.pos);
+
+	Line scanline;
+	for (size_t y = v0.pos.y; y < v2.pos.y; y++)
 	{
-
-		b0.pos.x = v0.pos.x - v1.pos.x;
-		b1.pos.x = v2.pos.x - v1.pos.x;
-		b0.pos.y = y;
-		b1.pos.y = y;
-		Line scanLine = DrawLine(b0, b1);
-
-		for (auto pix : scanLine.plots)
-		{
-			
-			P.pos.x = pix.x;
-			P.pos.y = pix.y;
-			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
-
-			P = ApplyWeights(v0, v1, v2, weights);
-			P.pos.x = pix.x;
-			P.pos.y = pix.y;
-
-			if (depth_buffer[int(pix.x + pix.y * fb_width)] < P.pos.z)
-			{
-				depth_buffer[int(pix.x + pix.y * fb_width)] = P.pos.z;
-				PlacePixel(P.pos.x, P.pos.y, frag_shader(P, texture));
-			}
-		}
+		
 	}
+	
+	for (size_t i = 0; i < line_0_1.plots.size(); i++)
+	{
+		if (line_0_1.plots[i].y == line_0_2.plots[i].y)
+		{
+			scanline = DrawLine(line_0_1.plots[i], line_0_2.plots[i]);
+			for (auto plot : scanline.plots)
+			{
+				PlacePixel(plot.x, plot.y, Pixel{255, 255, 255, 255});
+			}
+			
+		}
+		
+
+	}
+	
+	// for (size_t y = v0.pos.y; y < v2.pos.y; y++)
+	// {
+		
+	// 	for (size_t x = 0; x < 0 /*end of scanline*/; x++)
+	// 	{
+
+	// 	}
+		
+	// }
+	
+	// // calc line slopes in screen-space
+	// float m0 = (v1.pos.x - v0.pos.x) / (v1.pos.y - v0.pos.y);
+	// float m1 = (v2.pos.x - v0.pos.x) / (v2.pos.y - v0.pos.y);
+
+	// // start and end for scanlines
+	// int scan_start = (int)ceil(v0.pos.y );
+	// int scan_end = (int)ceil(v2.pos.y );
+
+	// VertexOut P;
+	// for (int y = scan_start; y < scan_end; y++)
+	// {
+	// 	// scanline start X
+	// 	float px0 = m0 * (float(y) - v0.pos.y) + v0.pos.x;
+	// 	float px1 = m1 * (float(y)  - v0.pos.y) + v0.pos.x;
+
+	// 	// start, end pixels
+	// 	int pix_start = (int)ceil(px0 );
+	// 	int pix_end = (int)ceil(px1 );
+
+	// 	for (int x = pix_start; x < pix_end; x++)
+	// 	{
+
+	// 		P.pos.x = x;
+	// 		P.pos.y = y;
+	// 		vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
+
+	// 		P = ApplyWeights(v0, v1, v2, weights);
+	// 		P.pos.x = x;
+	// 		P.pos.y = y;
+
+	// 		if (depth_buffer[int(x + y * fb_width)] < P.pos.z)
+	// 		{
+	// 			depth_buffer[int(x + y * fb_width)] = P.pos.z;
+	// 			PlacePixel(P.pos.x, P.pos.y, frag_shader(P, texture));
+	// 		}
+	// 	}
+	// }
+
 
 	
 
 }
+
 
 VertexOut Renderer::ApplyWeights(VertexOut v0, VertexOut v1, VertexOut v2, vec3 weights)
 {

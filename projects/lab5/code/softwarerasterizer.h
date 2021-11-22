@@ -63,13 +63,6 @@ struct Point
 	};
 };
 
-struct Line
-{
-	VertexOut p0;
-	VertexOut p1;
-	std::vector<vec3> plots;
-
-};
 
 
 
@@ -98,6 +91,13 @@ struct VertexOBJref
 };
 
 
+struct Line
+{
+	VertexOut p0;
+	VertexOut p1;
+	std::vector<vec3> plots;
+
+};
 
 
 
@@ -123,20 +123,20 @@ public:
 	void RasterizeTriangle(vec3 v0, vec3 v1, vec3 v2, Pixel colour);
 	void BarRasterizeTriangle(VertexOut* points, Pixel colour);
 	void SetModelViewProjectionMatrix(const mat4 &mvp);
-    Line DrawLine(VertexOut p1, VertexOut p2);
+    Line DrawLine(vec3 p1, vec3 p2);
 	void SaveFB();
 	bool LoadOBJModel(std::string filename);
 	void UpdateQuadTex(GLuint handle);
 	mat4 GetMVP();
 	void ClearFB();
-	void WireFrame(vec3 v0, vec3 v1, vec3 v2);
+	void Triangle(VertexOut v0, VertexOut v1, VertexOut v2);
 	void TriangleRaster(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2);
 	void NoCullBarRasterizeTriangle(vec3* pts, Pixel colour);
 	vec4& ToScreenSpace(vec4& vec);
 	bool Cull(vec4 v0, vec4 v1, vec4 v2) const;
 	void SetTexture(Texture tex);
 	VertexOut ApplyWeights(VertexOut v0, VertexOut v1, VertexOut v2, vec3 weights);
-
+	
 	std::vector<Vertex> OBJLoader(const char* filepath);
 	std::vector<Vertex> GetMesh();
 private:
