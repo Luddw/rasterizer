@@ -120,8 +120,7 @@ public:
 	int GetHeight();
 	int GetWidth();
 	void Draw(unsigned int handle);
-	void RasterizeTriangle(vec3 v0, vec3 v1, vec3 v2, Pixel colour);
-	void BarRasterizeTriangle(VertexOut* points, Pixel colour);
+	void RasterizeTriangle(VertexOut v0, VertexOut v1, VertexOut v2);
 	void SetModelViewProjectionMatrix(const mat4 &mvp);
     Line DrawLine(vec3 p1, vec3 p2);
 	void SaveFB();
@@ -136,7 +135,7 @@ public:
 	bool Cull(vec4 v0, vec4 v1, vec4 v2) const;
 	void SetTexture(Texture tex);
 	VertexOut ApplyWeights(VertexOut v0, VertexOut v1, VertexOut v2, vec3 weights);
-	
+	Line BresenLine(int x0, int y0, int x1, int y1);
 	std::vector<Vertex> OBJLoader(const char* filepath);
 	std::vector<Vertex> GetMesh();
 private:

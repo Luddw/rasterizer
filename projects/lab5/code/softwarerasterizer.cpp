@@ -72,15 +72,13 @@ Renderer::Renderer(const int width, const int height)
 
 	// Fragment Shader
 	SetFragmentShader([&](VertexOut& inVert, Texture& tex) -> Pixel {
-		//vec3 lightColor(0.9,0.9,0.9);
 		vec3 lightColor(0.3,0.3,0.3);
 		
 		
 		vec3 lightPos(1,0.2,1);
 		vec3 viewPos(0,0,1);
 
-		Pixel texcol = /*Pixel{0,0,255,255};*/tex.GetColor(inVert.uv); 
-		//texcol = Pixel{0,0,255,255};
+		Pixel texcol = tex.GetColor(inVert.uv); 
 		vec3 col = vec3(texcol.r/255.0f,texcol.g/255.0f, texcol.b/255.0f);
 		vec3 ambient = col * 0.05;
 
@@ -136,7 +134,7 @@ void Renderer::Draw(unsigned int handle)
 		ToScreenSpace(outVert[i+2].pos);
 
 		TriangleRaster(outVert[i], outVert[i+1], outVert[i+2]);
-		//Triangle(outVert[i], outVert[i+1], outVert[i+2]);
+
 	}
 	
 	staticRotation += 0.01f;
@@ -202,48 +200,42 @@ void Renderer::SaveFB()
 	printf("writing image: %s \n", "capture.png");
 }
 
-//bresenham line function 
-Line Renderer::DrawLine(vec3 p1, vec3 p2)
+
+// Bresenham Line function
+Line Renderer::BresenLine(int x0, int y0, int x1, int y1)
 {
-	Line bresenLine;
-    bool isSteep = false;
+    Line bresenline;
+	int dx = abs(x1 - x0);
+	int sx = x0 < x1 ? 1 : -1;
+	int dy = -abs(y1 - y0);
+	int sy = y0 < y1 ? 1 : -1;
+	int error = dx + dy;
+	
+	while (true)
+	{
+		bresenline.plots.push_back(vec3(x0, y0));
+		if (x0 == x1 && y0 == y1) break;
 
-    if (std::abs(p1.x - p2.x) < std::abs(p1.y - p2.y))
-    {
-        std::swap(p1.x, p1.y);
-        std::swap(p2.x, p2.y);
-        isSteep = true;
-    }
+		int error2 = 2*error;
+		if (error2 >= dy)
+		{
+			error += dy;
+			x0 += sx;
+		}
+		if (error2 <= dx)
+		{
+			error += dx;
+			y0 += sy;
+		}
+	}
+	
+	if (bresenline.plots.begin()->x == x1 && bresenline.plots.begin()->y == y1)
+	{
+		std::reverse(bresenline.plots.begin(), bresenline.plots.end());
+	}
+	
 
-    if (p1.x > p2.x) // switch to left-to-right
-    {
-        std::swap(p1.x, p2.x);
-        std::swap(p1.y, p2.y);
-    }
-
-    int dx = p2.x - p1.x;
-    int dy = p2.y - p1.y;
-    int dError = std::abs(dy) * 2;
-    int error = 0;
-    int y = p1.y;
-
-    for (size_t x = p1.x; x <= p2.x; x++)
-    {
-        
-        if (isSteep)
-			bresenLine.plots.emplace_back(x, y, 0);
-        else
-            bresenLine.plots.emplace_back(y, x, 0);
-
-        error += dError;
-        if (error > dx)
-        {
-            y += (p2.y > p1.y ? 1 : -1);
-            error -= dx * 2;
-        }    
-    }
-
-	return bresenLine;
+	return bresenline;
 }
 
 
@@ -264,13 +256,14 @@ void Renderer::ClearFB()
 
 	for (size_t i = 0; i < fb_height*fb_width; i++)
 	{
-		frame_buffer[i].r = 0;
-		frame_buffer[i].g = 0; 
-		frame_buffer[i].b = 0; 
+		frame_buffer[i].r = 200;
+		frame_buffer[i].g = 200; 
+		frame_buffer[i].b = 200; 
 		frame_buffer[i].a = 254; 
 		depth_buffer[i] = -std::numeric_limits<float>::infinity();
 	}
 }
+
 
 
 void Renderer::TriangleRaster(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2)
@@ -326,195 +319,107 @@ void Renderer::TriangleRaster(const VertexOut& v0, const VertexOut& v1, const Ve
 
 void Renderer::FlatTopTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2)
 {
-	// // calc line slopes in screen-space
-	// float m0 = (v2.pos.x - v0.pos.x) / (v2.pos.y - v0.pos.y);
-	// float m1 = (v2.pos.x - v1.pos.x) / (v2.pos.y - v1.pos.y);
 
-	// int dx0x1 = v1.pos.x - v0.pos.x;
-	// int dx0x2 = v2.pos.x - v0.pos.x;
 
-	// int dy0y1 = v1.pos.y - v0.pos.y;
-	// int dy0y2 = v2.pos.y - v0.pos.y;
-
-	// int sloap1 = 2*dy0y1 - dx0x1;
-	// int sloap2 = 2*dy0y2 - dx0x2;
-
-	// //int y = v0.pos.y;
-
-	// // start and end for scanlines
-	// int scan_start = v0.pos.y;
-	// int scan_end = v2.pos.y;
-
-	// VertexOut P;
-	// for (int y = scan_start; y < scan_end; y++)
-	// {
-	// 	// scanline start X
-	// 	float px0 = m0 * (float(y)  - v0.pos.y) + v0.pos.x;
-	// 	float px1 = m1 * (float(y) - v1.pos.y) + v1.pos.x;
-
-	// 	int startX = 0;
-
-	// 	// start, end pixels
-	// 	int pix_start = (int)ceil(px0 );
-	// 	int pix_end = (int)ceil(px1 );
-
-	// 	for (int x = pix_start; x < pix_end; x++)
-	// 	{
-
-	// 		P.pos.x = x;
-	// 		P.pos.y = y;
-	// 		vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
-
-	// 		P = ApplyWeights(v0, v1, v2, weights);
-	// 		P.pos.x = x;
-	// 		P.pos.y = y;
-
-	// 		if (depth_buffer[int(x + y * fb_width)] < P.pos.z)
-	// 		{
-	// 			depth_buffer[int(x + y * fb_width)] = P.pos.z;
-	// 			PlacePixel(P.pos.x, P.pos.y, frag_shader(P, texture));
-	// 		}
-	// 	}
-	// }
-
-	Line line_0_1 = DrawLine(v0.pos, v2.pos);
-	Line line_0_2 = DrawLine(v1.pos, v2.pos);
+	Line l1 = BresenLine(v0.pos.x,v0.pos.y, v2.pos.x, v2.pos.y);
+	Line l2 = BresenLine(v1.pos.x,v1.pos.y, v2.pos.x, v2.pos.y);
 
 	Line scanline;
+	int curr_y = l1.plots[0].y; //första punkten i första linjen
 
-	for (size_t i = 0; i < line_0_1.plots.size(); i++)
+	while (curr_y <= l1.plots.back().y)
 	{
-		if (line_0_1.plots[i].y == line_0_2.plots[i].y)
+		int x1, x2;
+
+		// Sök efter "extrempunkt" i Linje 1
+		for (auto point : l1.plots)
 		{
-			scanline = DrawLine(line_0_1.plots[i], line_0_2.plots[i]);
-			for (auto plot : scanline.plots)
+			x1 = point.x;
+			if (point.y == curr_y)
+				break;
+		}
+
+		// Sök efter "extrempunkt" i linje 2
+		for (auto point : l2.plots)
+		{
+			x2 = point.x;
+			if (point.y == curr_y)
+				break;
+		}
+
+		//fill scanline
+		for (size_t x = x1; x <= x2; x++)
+		{
+			
+			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, vec3(x,curr_y));
+			VertexOut P;
+			P = ApplyWeights(v0,v1,v2, weights);
+			if (depth_buffer[x + curr_y *fb_width] < P.pos.z)
 			{
-				PlacePixel(plot.x, plot.y, Pixel{255, 255, 255, 255});
+				depth_buffer[x + curr_y *fb_width] = P.pos.z;
+				PlacePixel(x, curr_y, frag_shader(P, texture));
+				
 			}
 			
 		}
 		
 
+		curr_y++;
 	}
+
+
+
+
+
+	
 }
 
 void Renderer::FlatBottomTriangle(const VertexOut& v0, const VertexOut& v1, const VertexOut& v2)
-{
-	// // calc line slopes in screen-space
-	// float m0 = (v1.pos.x - v0.pos.x) / (v1.pos.y - v0.pos.y);
-	// float m1 = (v2.pos.x - v0.pos.x) / (v2.pos.y - v0.pos.y);
+{	
 
-	// // start and end for scanlines
-	// int scan_start = (int)ceil(v0.pos.y );
-	// int scan_end = (int)ceil(v2.pos.y );
-
-	// VertexOut P;
-	// for (int y = scan_start; y < scan_end; y++)
-	// {
-	// 	// scanline start X
-	// 	float px0 = m0 * (float(y) - v0.pos.y) + v0.pos.x;
-	// 	float px1 = m1 * (float(y)  - v0.pos.y) + v0.pos.x;
-
-	// 	// start, end pixels
-	// 	int pix_start = (int)ceil(px0 );
-	// 	int pix_end = (int)ceil(px1 );
-
-	// 	for (int x = pix_start; x < pix_end; x++)
-	// 	{
-
-	// 		P.pos.x = x;
-	// 		P.pos.y = y;
-	// 		vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
-
-	// 		P = ApplyWeights(v0, v1, v2, weights);
-	// 		P.pos.x = x;
-	// 		P.pos.y = y;
-
-	// 		if (depth_buffer[int(x + y * fb_width)] < P.pos.z)
-	// 		{
-	// 			depth_buffer[int(x + y * fb_width)] = P.pos.z;
-	// 			PlacePixel(P.pos.x, P.pos.y, frag_shader(P, texture));
-	// 		}
-	// 	}
-	// }
+	Line l1 = BresenLine(v0.pos.x,v0.pos.y, v1.pos.x, v1.pos.y);
+	Line l2 = BresenLine(v0.pos.x,v0.pos.y, v2.pos.x, v2.pos.y);
 
 
+	int curr_y = l1.plots[0].y; //första punkten i första linjen
 
-	Line line_0_1 = DrawLine(v0.pos, v1.pos);
-	Line line_0_2 = DrawLine(v0.pos, v2.pos);
-
-	Line scanline;
-	for (size_t y = v0.pos.y; y < v2.pos.y; y++)
+	while (curr_y <= l1.plots.back().y)
 	{
-		
-	}
-	
-	for (size_t i = 0; i < line_0_1.plots.size(); i++)
-	{
-		if (line_0_1.plots[i].y == line_0_2.plots[i].y)
+		int x1, x2;
+
+		// Sök efter "extrempunkt" i Linje 1
+		for (auto point : l1.plots)
 		{
-			scanline = DrawLine(line_0_1.plots[i], line_0_2.plots[i]);
-			for (auto plot : scanline.plots)
+			x1 = point.x;
+			if (point.y == curr_y)
+				break;
+		}
+
+		// Sök efter "extrempunkt" i linje 2
+
+		for (auto point : l2.plots)
+		{
+			x2 = point.x;
+			if (point.y == curr_y)
+				break;
+		}
+
+		//fill scanline 
+		for (size_t x = x1; x <= x2; x++)
+		{
+			vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, vec3(x,curr_y));
+			VertexOut P;
+			P = ApplyWeights(v0,v1,v2, weights);
+			if (depth_buffer[(int)x + curr_y *fb_width] < P.pos.z)
 			{
-				PlacePixel(plot.x, plot.y, Pixel{255, 255, 255, 255});
+				depth_buffer[x + curr_y *fb_width] = P.pos.z;
+				PlacePixel(x, curr_y, frag_shader(P, texture)); // place pixel in FB, get color from frag_shader
 			}
 			
 		}
-		
-
+	
+		curr_y++;
 	}
-	
-	// for (size_t y = v0.pos.y; y < v2.pos.y; y++)
-	// {
-		
-	// 	for (size_t x = 0; x < 0 /*end of scanline*/; x++)
-	// 	{
-
-	// 	}
-		
-	// }
-	
-	// // calc line slopes in screen-space
-	// float m0 = (v1.pos.x - v0.pos.x) / (v1.pos.y - v0.pos.y);
-	// float m1 = (v2.pos.x - v0.pos.x) / (v2.pos.y - v0.pos.y);
-
-	// // start and end for scanlines
-	// int scan_start = (int)ceil(v0.pos.y );
-	// int scan_end = (int)ceil(v2.pos.y );
-
-	// VertexOut P;
-	// for (int y = scan_start; y < scan_end; y++)
-	// {
-	// 	// scanline start X
-	// 	float px0 = m0 * (float(y) - v0.pos.y) + v0.pos.x;
-	// 	float px1 = m1 * (float(y)  - v0.pos.y) + v0.pos.x;
-
-	// 	// start, end pixels
-	// 	int pix_start = (int)ceil(px0 );
-	// 	int pix_end = (int)ceil(px1 );
-
-	// 	for (int x = pix_start; x < pix_end; x++)
-	// 	{
-
-	// 		P.pos.x = x;
-	// 		P.pos.y = y;
-	// 		vec3 weights = barycentric(v0.pos, v1.pos, v2.pos, P.pos);
-
-	// 		P = ApplyWeights(v0, v1, v2, weights);
-	// 		P.pos.x = x;
-	// 		P.pos.y = y;
-
-	// 		if (depth_buffer[int(x + y * fb_width)] < P.pos.z)
-	// 		{
-	// 			depth_buffer[int(x + y * fb_width)] = P.pos.z;
-	// 			PlacePixel(P.pos.x, P.pos.y, frag_shader(P, texture));
-	// 		}
-	// 	}
-	// }
-
-
-	
-
 }
 
 
@@ -558,6 +463,7 @@ void Renderer::SetTexture(Texture tex)
 	texture = tex;
 }
 
+// .OBJ model loader
 std::vector<Vertex> Renderer::OBJLoader(const char* filepath)
 {
 	std::vector<vec3> positions;

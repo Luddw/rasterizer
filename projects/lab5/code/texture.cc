@@ -41,7 +41,6 @@ Texture::Texture(unsigned char * buf) :  tex_handle(0), localbuf(nullptr),widht(
 	
 	glGenTextures(1,&tex_handle);
 	glBindTexture(GL_TEXTURE_2D,tex_handle);
-	//std::cout<<"width: "<< widht<< "height: " << height << "bpp: "<<bpp<<std::endl;
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
